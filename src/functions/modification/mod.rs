@@ -1,1 +1,1 @@
-pub mod capitalize;
+pub mod cases;

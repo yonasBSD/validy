@@ -1,11 +1,12 @@
+use crate::builders::ValidationErrorBuilder;
 use async_trait::async_trait;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, collections::HashMap};
 #[cfg(feature = "derive")]
 pub use validation_derive::*;
 
-use crate::builders::ValidationErrorBuilder;
-
+#[cfg(feature = "modification")]
+pub type ModificationResult<T> = (T, Option<ValidationError>);
 pub type ValidationErrors = HashMap<Cow<'static, str>, ValidationError>;
 
 #[derive(Debug, Serialize)]
@@ -29,37 +30,6 @@ pub struct NestedValidationError {
 	pub errors: ValidationErrors,
 }
 
-impl NestedValidationError {
-	pub fn from(errors: ValidationErrors, field: impl Into<Cow<'static, str>>) -> Self {
-		NestedValidationError {
-			field: field.into(),
-			code: "nested".into(),
-			errors,
-		}
-	}
-
-	pub fn new(field: impl Into<Cow<'static, str>>) -> Self {
-		let errors = HashMap::<Cow<'static, str>, ValidationError>::new();
-
-		NestedValidationError {
-			field: field.into(),
-			code: "nested".into(),
-			errors,
-		}
-	}
-
-	pub fn put(&mut self, error: ValidationError) {
-		match error {
-			ValidationError::Node(error) => {
-				self.errors.insert(error.field.clone(), error.into());
-			}
-			ValidationError::Leaf(error) => {
-				self.errors.insert(error.field.clone(), error.into());
-			}
-		}
-	}
-}
-
 #[derive(Debug, Serialize)]
 pub struct SimpleValidationError {
 	#[serde(skip_serializing)]
@@ -68,47 +38,58 @@ pub struct SimpleValidationError {
 	pub message: Option<Cow<'static, str>>,
 }
 
-impl SimpleValidationError {
-	pub fn new(field: impl Into<Cow<'static, str>>, code: impl Into<Cow<'static, str>>) -> Self {
-		SimpleValidationError {
-			field: field.into(),
-			code: code.into(),
-			message: None,
-		}
-	}
-
-	pub fn with_message(mut self, message: impl Into<Cow<'static, str>>) -> Self {
-		self.message = Some(message.into());
-		self
-	}
-}
-
-pub trait Validation {
+pub trait Validate {
 	fn validate(&self) -> Result<(), ValidationErrors>;
 }
 
 #[async_trait]
-pub trait AsyncValidation: Send + Sync {
+pub trait AsyncValidate: Send + Sync {
 	async fn async_validate(&self) -> Result<(), ValidationErrors>;
 }
 
-pub trait ValidationWithContext<C> {
+pub trait ValidateWithContext<C> {
 	fn validate_with_context(&self, context: &C) -> Result<(), ValidationErrors>;
 }
 
 #[async_trait]
-pub trait AsyncValidationWithContext<C>: Send + Sync {
+pub trait AsyncValidateWithContext<C>: Send + Sync {
 	async fn async_validate_with_context(&self, context: &C) -> Result<(), ValidationErrors>;
 }
 
-impl From<NestedValidationError> for ValidationError {
-	fn from(value: NestedValidationError) -> Self {
-		ValidationError::Node(value)
-	}
+pub trait ValidateAndModificate {
+	fn validate_and_modificate(&mut self) -> Result<(), ValidationErrors>;
 }
 
-impl From<SimpleValidationError> for ValidationError {
-	fn from(value: SimpleValidationError) -> Self {
-		ValidationError::Leaf(value)
-	}
+#[async_trait]
+pub trait AsyncValidateAndModificate: Send + Sync {
+	async fn async_validate_and_modificate(&mut self) -> Result<(), ValidationErrors>;
+}
+
+pub trait ValidateAndModificateWithContext<C> {
+	fn validate_and_modificate_with_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
+}
+
+#[async_trait]
+pub trait AsyncValidateAndModificateWithContext<C>: Send + Sync {
+	async fn async_validate_and_modificate_with_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
+}
+
+//....
+
+pub trait DeserializeAndValidate {
+	fn deserialize_and_validate(&mut self) -> Result<(), ValidationErrors>;
+}
+
+#[async_trait]
+pub trait AsyncDeserializeAndValidate: Send + Sync {
+	async fn async_deserialize_and_validate(&mut self) -> Result<(), ValidationErrors>;
+}
+
+pub trait DeserializeAndValidateWithContext<C> {
+	fn deserialize_and_validatewith_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
+}
+
+#[async_trait]
+pub trait AsyncDeserializeAndValidateWithContext<C>: Send + Sync {
+	async fn async_deserialize_and_validate_with_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
 }

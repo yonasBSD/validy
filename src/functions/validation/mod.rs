@@ -8,6 +8,10 @@ pub mod iter;
 pub mod length;
 #[cfg(feature = "pattern")]
 pub mod pattern;
+pub mod prefix;
 pub mod range;
+pub mod suffix;
+#[cfg(feature = "time")]
+pub mod time;
 #[cfg(feature = "pattern")]
 pub mod url;

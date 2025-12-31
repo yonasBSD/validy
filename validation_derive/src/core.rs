@@ -11,15 +11,34 @@ use crate::{
 		collections::{any::create_any, none::create_none},
 		complexes::for_each::create_for_each,
 		customs::{
-			async_custom::create_async_custom, async_custom_with_context::create_async_custom_with_context,
-			custom::create_custom, custom_with_context::create_custom_with_context,
+			modification::{
+				async_custom::create_async_custom_modification,
+				async_custom_with_context::create_async_custom_with_context_modification,
+				custom::create_custom_modification, custom_with_context::create_custom_with_context_modification,
+			},
+			validation::{
+				async_custom::create_async_custom, async_custom_with_context::create_async_custom_with_context,
+				custom::create_custom, custom_with_context::create_custom_with_context,
+			},
 		},
 		format::{
-			capitalize::create_capitalize, lowercase::create_lowercase, trim::create_trim, uppercase::create_uppercase,
+			camel_case::create_camel_case, capitalize::create_capitalize, kebab_case::create_kebab_case,
+			lower_camel_case::create_lower_camel_case, lowercase::create_lowercase,
+			shouty_kebab_case::create_shouty_kebab_case, shouty_snake_case::create_shouty_snake_case,
+			snake_case::create_snake_case, train_case::create_train_case, trim::create_trim, trim_end::create_trim_end,
+			trim_start::create_trim_start, uppercase::create_uppercase,
 		},
+		inlines::{inline_modification::create_inline_modification, inline_validation::create_inline_validation},
 		ips::{ip::create_ip, ipv4::create_ipv4, ipv6::create_ipv6},
-		patterns::{contains::create_contains, email::create_email, pattern::create_pattern, url::create_url},
+		patterns::{
+			contains::create_contains, email::create_email, pattern::create_pattern, prefix::create_prefix,
+			suffix::create_suffix, url::create_url,
+		},
 		ranges::{length::create_length, range::create_range},
+		time::{
+			after_now::create_after_now, before_now::create_before_now, default_time::create_time,
+			naive_time::create_naive_time, now::create_now,
+		},
 	},
 };
 
@@ -91,39 +110,33 @@ pub fn get_validation_by_attr_macro(
 	attributes: &ValidationAttributes,
 ) -> TokenStream {
 	match meta {
-		//custom
+		m if m.path.is_ident("inline") => create_inline_validation(m.input, field),
 		m if m.path.is_ident("custom") => create_custom(m.input, field),
 		m if m.path.is_ident("custom_with_context") => create_custom_with_context(m.input, field, attributes),
 		m if m.path.is_ident("async_custom") => create_async_custom(m.input, field, attributes),
 		m if m.path.is_ident("async_custom_with_context") => {
 			create_async_custom_with_context(m.input, field, attributes)
 		}
-
-		//ip
 		m if m.path.is_ident("ip") => create_ip(m.input, field),
 		m if m.path.is_ident("ipv4") => create_ipv4(m.input, field),
 		m if m.path.is_ident("ipv6") => create_ipv6(m.input, field),
-
-		//pattern
 		m if m.path.is_ident("pattern") => create_pattern(m.input, field),
 		m if m.path.is_ident("url") => create_url(m.input, field),
 		m if m.path.is_ident("email") => create_email(m.input, field),
-
-		//range
+		m if m.path.is_ident("prefix") => create_prefix(m.input, field),
+		m if m.path.is_ident("suffix") => create_suffix(m.input, field),
 		m if m.path.is_ident("range") => create_range(m.input, field),
 		m if m.path.is_ident("length") => create_length(m.input, field),
 		m if m.path.is_ident("contains") => create_contains(m.input, field),
-
-		//todo
 		m if m.path.is_ident("any") => create_any(m.input, field),
 		m if m.path.is_ident("none") => create_none(m.input, field),
+		m if m.path.is_ident("time") => create_time(m.input, field),
+		m if m.path.is_ident("before_now") => create_before_now(m.input, field),
+		m if m.path.is_ident("after_now") => create_after_now(m.input, field),
+		m if m.path.is_ident("naive_time") => create_naive_time(m.input, field),
+		m if m.path.is_ident("now") => create_now(m.input, field),
 
-		m if m.path.is_ident("inline") => create_contains(m.input, field),
-		m if m.path.is_ident("prefix") => create_contains(m.input, field),
-		m if m.path.is_ident("suffix") => create_contains(m.input, field),
-		m if m.path.is_ident("before") => create_contains(m.input, field),
-		m if m.path.is_ident("after") => create_contains(m.input, field),
-		m if m.path.is_ident("time") => create_contains(m.input, field),
+		//todo
 		m if m.path.is_ident("required") => create_contains(m.input, field),
 
 		_ => quote! {},
@@ -142,25 +155,30 @@ pub fn get_operation_by_attr_macro(
 	}
 
 	match meta {
+		m if m.path.is_ident("custom") => create_custom_modification(m.input, field),
+		m if m.path.is_ident("custom_with_context") => {
+			create_custom_with_context_modification(m.input, field, attributes)
+		}
+		m if m.path.is_ident("async_custom") => create_async_custom_modification(m.input, field, attributes),
+		m if m.path.is_ident("async_custom_with_context") => {
+			create_async_custom_with_context_modification(m.input, field, attributes)
+		}
 		m if m.path.is_ident("trim") => create_trim(field),
+		m if m.path.is_ident("trim_end") => create_trim_end(field),
+		m if m.path.is_ident("trim_start") => create_trim_start(field),
 		m if m.path.is_ident("uppercase") => create_uppercase(field),
 		m if m.path.is_ident("lowercase") => create_lowercase(field),
 		m if m.path.is_ident("capitalize") => create_capitalize(field),
+		m if m.path.is_ident("camel_case") => create_camel_case(field),
+		m if m.path.is_ident("lower_camel_case") => create_lower_camel_case(field),
+		m if m.path.is_ident("snake_case") => create_snake_case(field),
+		m if m.path.is_ident("shouty_snake_case") => create_shouty_snake_case(field),
+		m if m.path.is_ident("kebab_case") => create_kebab_case(field),
+		m if m.path.is_ident("shouty_kebab_case") => create_shouty_kebab_case(field),
+		m if m.path.is_ident("train_case") => create_train_case(field),
+		m if m.path.is_ident("inline") => create_inline_modification(m.input, field),
 		_ => quote! {},
 	}
-
-	// modify(camel_case)
-	// modify(lower_camel_case)
-	// modify(snake_case)
-	// modify(shouty_snake_case)
-	// modify(kebab_case)
-	// modify(shouty_kebab_case)
-	// modify(train_case)
-
-	// modify(custom)
-	// modify(async_custom)
-	// modify(custom_with_context)
-	// modify(async_custom_with_context)
 }
 
 pub fn get_complex_by_attr_macro(

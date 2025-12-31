@@ -28,7 +28,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		  use #async_trait_import;
 
 			#[async_trait]
-		  impl AsyncValidation for #name {
+		  impl AsyncValidate for #name {
 			  async fn async_validate(&self) -> Result<(), ValidationErrors> {
 					let mut errors = Vec::<ValidationError>::new();
 
@@ -51,7 +51,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		  }
 
 			#[async_trait]
-		  impl<C> AsyncValidationWithContext<C> for #name {
+		  impl<C> AsyncValidateWithContext<C> for #name {
 			  async fn async_validate_with_context(&self, _: &C) -> Result<(), ValidationErrors> {
 				  self.async_validate().await
 			  }
@@ -66,7 +66,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		let field_type = field.get_type();
 
 		quote! {
-		  if let Err(e) = <#field_type as AsyncValidation>::validate(&#reference).await {
+		  if let Err(e) = <#field_type as AsyncValidate>::validate(&#reference).await {
 				errors.push(ValidationError::Node(NestedValidationError::from(
 					e,
 					#field_name,

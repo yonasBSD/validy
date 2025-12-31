@@ -27,7 +27,7 @@ impl<'a> AbstractValidationFactory for ValidationFactory<'a> {
 		  use #import;
 		  use #async_trait_import;
 
-		  impl Validation for #name {
+		  impl Validate for #name {
 			  fn validate(&self) -> Result<(), ValidationErrors> {
 					let mut errors = Vec::<ValidationError>::new();
 
@@ -49,21 +49,21 @@ impl<'a> AbstractValidationFactory for ValidationFactory<'a> {
 			  }
 		  }
 
-		  impl<C> ValidationWithContext<C> for #name {
+		  impl<C> ValidateWithContext<C> for #name {
 			  fn validate_with_context(&self, context: &C) -> Result<(), ValidationErrors> {
 				  self.validate()
 			  }
 		  }
 
 			#[async_trait]
-		  impl AsyncValidation for #name {
+		  impl AsyncValidate for #name {
 			  async fn async_validate(&self) -> Result<(), ValidationErrors> {
 				  self.validate()
 			  }
 		  }
 
 			#[async_trait]
-		  impl<C> AsyncValidationWithContext<C> for #name {
+		  impl<C> AsyncValidateWithContext<C> for #name {
 			  async fn async_validate_with_context(&self, _: &C) -> Result<(), ValidationErrors> {
 				  self.validate()
 			  }
@@ -78,7 +78,7 @@ impl<'a> AbstractValidationFactory for ValidationFactory<'a> {
 		let field_type = field.get_type();
 
 		quote! {
-		  if let Err(e) = <#field_type as Validation>::validate(&#reference) {
+		  if let Err(e) = <#field_type as Validate>::validate(&#reference) {
 				errors.push(ValidationError::Node(NestedValidationError::from(
 					e,
 					#field_name,

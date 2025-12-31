@@ -29,7 +29,7 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		  use #import;
 		  use #async_trait_import;
 
-		  impl ValidationWithContext<#context> for #name {
+		  impl ValidateWithContext<#context> for #name {
 			  fn validate_with_context(&self, context: &#context) -> Result<(), ValidationErrors> {
 					let mut errors = Vec::<ValidationError>::new();
 
@@ -52,7 +52,7 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		  }
 
 			#[async_trait]
-		  impl AsyncValidationWithContext<#context> for #name
+		  impl AsyncValidateWithContext<#context> for #name
 		  where
 				#context: Send + Sync,
 		  {
@@ -71,7 +71,7 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		let context = &self.context;
 
 		quote! {
-		  if let Err(e) = <#field_type as ValidationWithContext<#context>>::validate_with_context(&#reference, &context) {
+		  if let Err(e) = <#field_type as ValidateWithContext<#context>>::validate_with_context(&#reference, &context) {
 				errors.push(ValidationError::Node(NestedValidationError::from(
 					e,
 					#field_name,
