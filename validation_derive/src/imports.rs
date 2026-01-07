@@ -17,8 +17,8 @@ pub fn import_validation_functions(function: &str) -> TokenStream {
 }
 
 pub fn import_modification_functions(function: &str) -> TokenStream {
-	let found_crate = crate_name("validation").expect("modification is present in `Cargo.toml`");
-	let function_path: Path = parse_str(function).expect("can't parse modification crate path");
+	let found_crate = crate_name("validation").expect("validation is present in `Cargo.toml`");
+	let function_path: Path = parse_str(function).expect("can't parse validation crate path");
 
 	match found_crate {
 		FoundCrate::Itself => quote!(crate::functions::#function),
@@ -49,6 +49,18 @@ pub fn import_async_trait() -> TokenStream {
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
 			quote!(#ident::async_trait)
+		}
+	}
+}
+
+pub fn import_serde_deserialize() -> TokenStream {
+	let found_crate = crate_name("serde").expect("serde is present in `Cargo.toml`");
+
+	match found_crate {
+		FoundCrate::Itself => quote!(crate::async_trait),
+		FoundCrate::Name(name) => {
+			let ident = Ident::new(&name, Span::call_site());
+			quote!(#ident::Deserialize)
 		}
 	}
 }

@@ -9,7 +9,6 @@ use crate::{
 	fields::FieldAttributes,
 	primitives::{
 		collections::{any::create_any, none::create_none},
-		complexes::for_each::create_for_each,
 		customs::{
 			modification::{
 				async_custom::create_async_custom_modification,
@@ -30,11 +29,13 @@ use crate::{
 		},
 		inlines::{inline_modification::create_inline_modification, inline_validation::create_inline_validation},
 		ips::{ip::create_ip, ipv4::create_ipv4, ipv6::create_ipv6},
+		option::{is_none::create_is_none, is_some::create_is_some, required::create_required},
 		patterns::{
 			contains::create_contains, email::create_email, pattern::create_pattern, prefix::create_prefix,
 			suffix::create_suffix, url::create_url,
 		},
 		ranges::{length::create_length, range::create_range},
+		specials::for_each::create_for_each,
 		time::{
 			after_now::create_after_now, before_now::create_before_now, default_time::create_time,
 			naive_time::create_naive_time, now::create_now,
@@ -50,62 +51,55 @@ pub fn get_fields(input: &DeriveInput) -> &Fields {
 	}
 }
 
-pub fn get_operations(
+pub fn get_fields_attributes(
 	fields: &Fields,
 	factory: &dyn AbstractValidationFactory,
 	attributes: &ValidationAttributes,
-) -> (Vec<TokenStream>, Vec<FieldAttributes>) {
+) -> Vec<FieldAttributes> {
 	let mut fields_attributes = Vec::<FieldAttributes>::new();
-	let operations = fields
-		.iter()
-		.enumerate()
-		.flat_map(|(index, field): (usize, &Field)| {
-			let mut operations = Vec::<TokenStream>::new();
 
-			let field_name = &field.ident;
-			let field_type = &field.ty;
+	fields.iter().enumerate().for_each(|(index, field): (usize, &Field)| {
+		let field_name = &field.ident;
+		let field_type = &field.ty;
 
-			let mut field_attributes = match field_name {
-				Some(name) => FieldAttributes::from_named(field_type, name),
-				None => {
-					let index = Index {
-						index: index as u32,
-						span: field.span(),
-					};
+		let mut field_attributes = match field_name {
+			Some(name) => FieldAttributes::from_named(field_type, name, attributes.payload),
+			None => {
+				let index = Index {
+					index: index as u32,
+					span: field.span(),
+				};
 
-					FieldAttributes::from_unamed(field_type, &index)
-				}
-			};
-
-			for attr in &field.attrs {
-				if attr.path().is_ident("validate") {
-					let _ = attr.parse_nested_meta(|meta| {
-						let validation = get_validation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
-						operations.push(validation.clone());
-						Ok(())
-					});
-				} else if attr.path().is_ident("modify") {
-					let _ = attr.parse_nested_meta(|meta| {
-						let operation = get_operation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
-						operations.push(operation.clone());
-						Ok(())
-					});
-				} else if attr.path().is_ident("complex") {
-					let _ = attr.parse_nested_meta(|meta| {
-						let operation = get_complex_by_attr_macro(factory, meta, &mut field_attributes, attributes);
-						operations.push(operation.clone());
-						Ok(())
-					});
-				}
+				FieldAttributes::from_unamed(field_type, &index, attributes.payload)
 			}
+		};
 
-			fields_attributes.push(field_attributes);
+		for attr in &field.attrs {
+			if attr.path().is_ident("validate") {
+				let _ = attr.parse_nested_meta(|meta| {
+					let validation = get_validation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					field_attributes.add_operation(validation.clone());
+					Ok(())
+				});
+			} else if attr.path().is_ident("modify") {
+				let _ = attr.parse_nested_meta(|meta| {
+					let operation = get_operation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					field_attributes.add_operation(operation.clone());
+					Ok(())
+				});
+			} else if attr.path().is_ident("special") {
+				let _ = attr.parse_nested_meta(|meta| {
+					let operation = get_special_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					field_attributes.add_operation(operation.clone());
+					Ok(())
+				});
+			}
+		}
 
-			operations
-		})
-		.collect();
+		fields_attributes.push(field_attributes);
+	});
 
-	(operations, fields_attributes)
+	fields_attributes
 }
 
 pub fn get_validation_by_attr_macro(
@@ -115,6 +109,9 @@ pub fn get_validation_by_attr_macro(
 	attributes: &ValidationAttributes,
 ) -> TokenStream {
 	match meta {
+		m if m.path.is_ident("required") => create_required(m.input, field),
+		m if m.path.is_ident("is_some") => create_is_some(m.input, field),
+		m if m.path.is_ident("is_none") => create_is_none(m.input, field),
 		m if m.path.is_ident("inline") => create_inline_validation(m.input, field),
 		m if m.path.is_ident("custom") => create_custom(m.input, field),
 		m if m.path.is_ident("custom_with_context") => create_custom_with_context(m.input, field, attributes),
@@ -140,10 +137,6 @@ pub fn get_validation_by_attr_macro(
 		m if m.path.is_ident("after_now") => create_after_now(m.input, field),
 		m if m.path.is_ident("naive_time") => create_naive_time(m.input, field),
 		m if m.path.is_ident("now") => create_now(m.input, field),
-
-		//todo
-		m if m.path.is_ident("required") => create_contains(m.input, field),
-
 		_ => quote! {},
 	}
 }
@@ -186,14 +179,12 @@ pub fn get_operation_by_attr_macro(
 	}
 }
 
-pub fn get_complex_by_attr_macro(
+pub fn get_special_by_attr_macro(
 	factory: &dyn AbstractValidationFactory,
 	meta: ParseNestedMeta<'_>,
 	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
 ) -> TokenStream {
-	// complex(parse)
-
 	match meta {
 		m if m.path.is_ident("nested") => factory.create_nested(field),
 		m if m.path.is_ident("for_each") => create_for_each(factory, m, field, attributes),

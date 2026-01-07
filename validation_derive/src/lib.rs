@@ -8,7 +8,7 @@ mod types;
 
 use crate::{
 	attributes::get_attributes,
-	core::{get_fields, get_operations},
+	core::{get_fields, get_fields_attributes},
 	factories::core::get_factory,
 	imports::{import_async_trait, import_validation},
 	types::{Input, Output},
@@ -80,6 +80,6 @@ fn impl_validation_macro(ast: &DeriveInput) -> Output {
 	attributes.modify = attributes.modify || attributes.payload;
 
 	let factory = get_factory(&ast.ident, &attributes);
-	let (operations, fields_attributes) = get_operations(fields, factory.as_ref(), &attributes);
-	factory.create(operations, fields_attributes)
+	let fields_attributes = get_fields_attributes(fields, factory.as_ref(), &attributes);
+	factory.create(fields_attributes)
 }

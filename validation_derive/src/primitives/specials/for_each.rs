@@ -4,7 +4,7 @@ use syn::meta::ParseNestedMeta;
 
 use crate::{
 	attributes::ValidationAttributes,
-	core::{get_complex_by_attr_macro, get_operation_by_attr_macro, get_validation_by_attr_macro},
+	core::{get_operation_by_attr_macro, get_special_by_attr_macro, get_validation_by_attr_macro},
 	factories::core::AbstractValidationFactory,
 	fields::FieldAttributes,
 };
@@ -33,9 +33,9 @@ pub fn create_for_each(
 				operations.push(operation.clone());
 				Ok(())
 			});
-		} else if meta.path.is_ident("complex") {
+		} else if meta.path.is_ident("special") {
 			let _ = meta.parse_nested_meta(|meta| {
-				let operation = get_complex_by_attr_macro(factory, meta, field, attributes);
+				let operation = get_special_by_attr_macro(factory, meta, field, attributes);
 				operations.push(operation.clone());
 				Ok(())
 			});

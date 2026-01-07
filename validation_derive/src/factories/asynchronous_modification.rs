@@ -16,15 +16,15 @@ impl<'a> AsyncModificationFactory<'a> {
 }
 
 impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
-	fn create(&self, operations: Vec<TokenStream>, fields: Vec<FieldAttributes>) -> Output {
+	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
 		let async_trait_import = import_async_trait();
 		let import = import_validation();
 
-		let name = &self.name;
-		let operations = &operations;
+		let name = self.name;
 
-		let commits = fields
-			.into_iter()
+		let commits: Vec<TokenStream> = fields
+			.iter()
+			.clone()
 			.filter(|field| field.get_modifications() > 0)
 			.map(|field| {
 				let reference = field.get_reference();
@@ -32,7 +32,10 @@ impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
 				quote! {
 				  #original_reference = #reference;
 				}
-			});
+			})
+			.collect();
+
+		let operations = fields.iter_mut().flat_map(|field| field.get_operations());
 
 		quote! {
 		  use #import;

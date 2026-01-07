@@ -1,9 +1,15 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, quote};
-use syn::{Ident, Index, LitStr, Type};
+use syn::{Ident, Index, LitStr, Type, parse_quote};
+
+use crate::primitives::option::required::RequiredArgs;
 
 pub struct FieldAttributes {
 	_type: Type,
+	_initial_type: Option<Type>,
+	required_args: RequiredArgs,
+	as_payload: bool,
+	operations: Vec<TokenStream>,
 	name: Option<Ident>,
 	index: Option<Index>,
 	scopes: usize,
@@ -11,9 +17,13 @@ pub struct FieldAttributes {
 }
 
 impl FieldAttributes {
-	pub fn from_named(_type: &Type, name: &Ident) -> Self {
+	pub fn from_named(_type: &Type, name: &Ident, as_payload: bool) -> Self {
 		FieldAttributes {
 			_type: _type.clone(),
+			_initial_type: None,
+			required_args: RequiredArgs::default(),
+			as_payload,
+			operations: Vec::new(),
 			name: Some(name.clone()),
 			index: None,
 			scopes: 0,
@@ -21,9 +31,13 @@ impl FieldAttributes {
 		}
 	}
 
-	pub fn from_unamed(_type: &Type, index: &Index) -> Self {
+	pub fn from_unamed(_type: &Type, index: &Index, as_payload: bool) -> Self {
 		FieldAttributes {
 			_type: _type.clone(),
+			_initial_type: None,
+			required_args: RequiredArgs::default(),
+			as_payload,
+			operations: Vec::new(),
 			name: None,
 			index: Some(index.clone()),
 			scopes: 0,
@@ -31,8 +45,101 @@ impl FieldAttributes {
 		}
 	}
 
+	pub fn add_operation(&mut self, operation: TokenStream) {
+		self.operations.push(operation);
+	}
+
+	pub fn get_operations(&mut self) -> TokenStream {
+		if self.as_payload {
+			let field_name = &self.get_name();
+			let reference = &self.get_reference();
+			self.increment_modifications();
+			let new_reference = &self.get_reference();
+
+			let operations = &self.operations;
+
+			let name = match (&self.name, &self.index) {
+				(Some(name), _) => name.to_string(),
+				(_, Some(index)) => index.index.to_string(),
+				_ => panic!("needs a field name or index"),
+			};
+
+			let unwrapped_final_name = format!("unwrapped_{}", name);
+			let unwrapped = Ident::new(&unwrapped_final_name, Span::call_site());
+
+			if self.is_option() {
+				quote! {
+				  let mut #new_reference;
+				  if let Some(#unwrapped) = ___wrapper.#field_name {
+						#(#operations)*
+						#new_reference = #reference;
+					} else {
+					  #new_reference = None;
+					}
+				}
+			} else {
+				let code = &self.required_args.code;
+				let message = &self.required_args.message;
+				quote! {
+				  if let Some(#unwrapped) = ___wrapper.#field_name {
+						#(#operations)*
+						#new_reference = #reference;
+					} else {
+					  errors.push(Err(ValidationError::builder()
+								.with_field(#field_name)
+								.as_simple(#code)
+								.with_message(#message)
+								.build()
+								.into());)
+					}
+				}
+			}
+		} else {
+			quote! {}
+		}
+	}
+
+	pub fn set_required_args(&mut self, required_args: RequiredArgs) {
+		self.required_args = required_args;
+	}
+
+	pub fn get_required_args(&self) -> &RequiredArgs {
+		&self.required_args
+	}
+
+	pub fn is_option(&self) -> bool {
+		if let Type::Path(type_path) = &self._type
+			&& let Some(segment) = type_path.path.segments.last()
+		{
+			return segment.ident == "Option";
+		}
+
+		false
+	}
+
 	pub fn get_type(&self) -> &Type {
 		&self._type
+	}
+
+	pub fn get_initial_type(&self) -> Type {
+		let _type = match &self._initial_type {
+			Some(_type) => _type,
+			None => &self._type,
+		};
+
+		if self.as_payload && !self.is_option() {
+			let _option_type: Type = parse_quote! {
+				Option<#_type>
+			};
+
+			_option_type
+		} else {
+			let __type: Type = parse_quote! {
+			  #_type
+			};
+
+			__type
+		}
 	}
 
 	pub fn get_name(&self) -> LitStr {
@@ -76,9 +183,20 @@ impl FieldAttributes {
 			_ => panic!("needs a field name or index"),
 		};
 
-		match (self.scopes, self.modifications) {
-			(0, 0) => quote! { self.#suffix },
-			(scopes, modifications) => {
+		match (self.as_payload, self.scopes, self.modifications) {
+			(false, 0, 0) => quote! { self.#suffix },
+			(true, 0, 0) => {
+				let name = match (&self.name, &self.index) {
+					(Some(name), _) => name.to_string(),
+					(_, Some(index)) => index.index.to_string(),
+					_ => panic!("needs a field name or index"),
+				};
+
+				let final_name = format!("unwrapped_{}", name);
+				let ident = Ident::new(&final_name, Span::call_site());
+				quote! { #ident }
+			}
+			(_, scopes, modifications) => {
 				let name = match (&self.name, &self.index) {
 					(Some(name), _) => name.to_string(),
 					(_, Some(index)) => index.index.to_string(),

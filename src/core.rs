@@ -56,8 +56,6 @@ pub trait AsyncValidateWithContext<C>: Send + Sync {
 	async fn async_validate_with_context(&self, context: &C) -> Result<(), ValidationErrors>;
 }
 
-//...
-
 pub trait ValidateAndModificate {
 	fn validate_and_modificate(&mut self) -> Result<(), ValidationErrors>;
 }
@@ -76,22 +74,20 @@ pub trait AsyncValidateAndModificateWithContext<C>: Send + Sync {
 	async fn async_validate_and_modificate_with_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
 }
 
-//....
-
-pub trait DeserializeAndValidate {
-	fn deserialize_and_validate(&mut self) -> Result<(), ValidationErrors>;
+pub trait ValidateAndParse<W>: Sized {
+	fn validate_and_parse(wrapper: W) -> Result<Self, ValidationErrors>;
 }
 
 #[async_trait]
-pub trait AsyncDeserializeAndValidate: Send + Sync {
-	async fn async_deserialize_and_validate(&mut self) -> Result<(), ValidationErrors>;
+pub trait AsyncValidateAndParse<W>: Sized + Send + Sync {
+	async fn async_validate_and_parse(wrapper: W) -> Result<Self, ValidationErrors>;
 }
 
-pub trait DeserializeAndValidateWithContext<C> {
-	fn deserialize_and_validatewith_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
+pub trait ValidateAndParseWithContext<W, C>: Sized {
+	fn validate_and_parse_with_context(wrapper: W, context: &C) -> Result<Self, ValidationErrors>;
 }
 
 #[async_trait]
-pub trait AsyncDeserializeAndValidateWithContext<C>: Send + Sync {
-	async fn async_deserialize_and_validate_with_context(&mut self, context: &C) -> Result<(), ValidationErrors>;
+pub trait AsyncValidateAndParseWithContext<W, C>: Sized + Send + Sync {
+	async fn async_validate_and_parse_with_context(wrapper: W, context: &C) -> Result<Self, ValidationErrors>;
 }

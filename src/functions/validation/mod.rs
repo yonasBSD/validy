@@ -6,6 +6,7 @@ pub mod inline;
 pub mod ip;
 pub mod iter;
 pub mod length;
+pub mod option;
 #[cfg(feature = "pattern")]
 pub mod pattern;
 pub mod prefix;

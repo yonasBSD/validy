@@ -16,12 +16,12 @@ impl<'a> AsyncValidationFactory<'a> {
 }
 
 impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
-	fn create(&self, operations: Vec<TokenStream>, _: Vec<FieldAttributes>) -> Output {
+	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
+		let operations = fields.iter_mut().flat_map(|field| field.get_operations());
 		let async_trait_import = import_async_trait();
 		let import = import_validation();
 
-		let name = &self.name;
-		let operations = &operations;
+		let name = self.name;
 
 		quote! {
 		  use #import;
