@@ -19,6 +19,7 @@ impl<'a> PayloadFactory<'a> {
 impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
 		let async_trait_import = import_async_trait();
+		let serde_deserialize_import = import_serde_deserialize();
 		let import = import_validation();
 
 		let name = self.name;
@@ -37,27 +38,52 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 			})
 			.collect();
 
+		let operations: Vec<TokenStream> = fields.iter_mut().map(|field| field.get_operations()).collect();
+
 		let commits: Vec<TokenStream> = fields
 			.iter()
 			.clone()
-			.filter(|field| field.get_modifications() > 0)
 			.map(|field| {
 				let reference = field.get_reference();
 				let name = field.get_name();
 				let field_name = Ident::new(&name.value(), Span::call_site());
 
-				quote! {
-				  #field_name: #reference,
+				if field.is_option() {
+					quote! {
+					  #field_name: #reference,
+					}
+				} else {
+					quote! {
+					  #field_name: #reference.ok_or_else(|| {
+						  let error = ValidationError::builder()
+							  .with_field(#name)
+							  .as_simple("unreachable")
+							  .with_message("field missing after successful required validation check")
+							  .build();
+
+						  let errors: Vec<ValidationError> = vec![error.into()];
+
+						  let map: ValidationErrors = errors
+							  .into_iter()
+							  .map(|e| match e {
+								  ValidationError::Node(e) => (e.field.clone().into(), ValidationError::Node(e)),
+								  ValidationError::Leaf(e) => (e.field.clone().into(), ValidationError::Leaf(e)),
+							  })
+							  .collect();
+
+						  map
+						})?
+					}
 				}
 			})
 			.collect();
 
-		let operations = fields.iter_mut().flat_map(|field| field.get_operations());
 		let wrapper_ident = format_ident!("{}Wrapper", name);
 
 		quote! {
 		  use #import;
 		  use #async_trait_import;
+			use #serde_deserialize_import;
 
 			#[derive(Deserialize)]
 			struct #wrapper_ident {

@@ -9,6 +9,6 @@ pub fn create_uppercase(field: &mut FieldAttributes) -> TokenStream {
 	let new_reference = field.get_reference();
 
 	quote! {
-		let mut #new_reference = &#reference.to_uppercase();
+		let mut #new_reference = #reference.to_uppercase();
 	}
 }

@@ -52,10 +52,10 @@ impl FieldAttributes {
 	pub fn get_operations(&mut self) -> TokenStream {
 		if self.as_payload {
 			let field_name = &self.get_name();
+			let field_type = &self.get_initial_type();
 			let reference = &self.get_reference();
 			self.increment_modifications();
 			let new_reference = &self.get_reference();
-
 			let operations = &self.operations;
 
 			let name = match (&self.name, &self.index) {
@@ -69,42 +69,42 @@ impl FieldAttributes {
 
 			if self.is_option() {
 				quote! {
-				  let mut #new_reference;
-				  if let Some(#unwrapped) = ___wrapper.#field_name {
+					let mut #new_reference: #field_type = None;
+					if let Some(#unwrapped) =  {
 						#(#operations)*
-						#new_reference = #reference;
-					} else {
-					  #new_reference = None;
+						#new_reference = Some(#reference);
 					}
 				}
 			} else {
 				let code = &self.required_args.code;
 				let message = &self.required_args.message;
+				let wrapper_reference = &self.get_wrapper_reference();
+
 				quote! {
-				  if let Some(#unwrapped) = ___wrapper.#field_name {
+				  let mut #new_reference: #field_type = None;
+				  if let Some(#unwrapped) = #wrapper_reference {
 						#(#operations)*
-						#new_reference = #reference;
+						#new_reference = Some(#reference);
 					} else {
-					  errors.push(Err(ValidationError::builder()
+					  errors.push(ValidationError::builder()
 								.with_field(#field_name)
 								.as_simple(#code)
 								.with_message(#message)
 								.build()
-								.into());)
+								.into());
 					}
 				}
 			}
 		} else {
-			quote! {}
+			let operations = &self.operations;
+			quote! {
+			  #(#operations)*
+			}
 		}
 	}
 
 	pub fn set_required_args(&mut self, required_args: RequiredArgs) {
 		self.required_args = required_args;
-	}
-
-	pub fn get_required_args(&self) -> &RequiredArgs {
-		&self.required_args
 	}
 
 	pub fn is_option(&self) -> bool {
@@ -164,6 +164,16 @@ impl FieldAttributes {
 
 	pub fn exit_scope(&mut self) {
 		self.scopes -= 1;
+	}
+
+	pub fn get_wrapper_reference(&self) -> TokenStream {
+		let suffix: &dyn ToTokens = match (&self.name, &self.index) {
+			(Some(name), _) => name,
+			(_, Some(index)) => index,
+			_ => panic!("needs a field name or index"),
+		};
+
+		quote! { ___wrapper.#suffix }
 	}
 
 	pub fn get_original_reference(&self) -> TokenStream {
