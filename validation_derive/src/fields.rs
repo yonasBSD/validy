@@ -5,8 +5,8 @@ use syn::{Ident, Index, LitStr, Type, parse_quote};
 use crate::primitives::option::required::RequiredArgs;
 
 pub struct FieldAttributes {
-	_type: Type,
-	_initial_type: Option<Type>,
+	final_type: Type,
+	initial_type: Option<Type>,
 	required_args: RequiredArgs,
 	as_payload: bool,
 	operations: Vec<TokenStream>,
@@ -17,10 +17,10 @@ pub struct FieldAttributes {
 }
 
 impl FieldAttributes {
-	pub fn from_named(_type: &Type, name: &Ident, as_payload: bool) -> Self {
+	pub fn from_named(final_type: &Type, name: &Ident, as_payload: bool) -> Self {
 		FieldAttributes {
-			_type: _type.clone(),
-			_initial_type: None,
+			final_type: final_type.clone(),
+			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
 			operations: Vec::new(),
@@ -31,10 +31,10 @@ impl FieldAttributes {
 		}
 	}
 
-	pub fn from_unamed(_type: &Type, index: &Index, as_payload: bool) -> Self {
+	pub fn from_unamed(final_type: &Type, index: &Index, as_payload: bool) -> Self {
 		FieldAttributes {
-			_type: _type.clone(),
-			_initial_type: None,
+			final_type: final_type.clone(),
+			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
 			operations: Vec::new(),
@@ -52,7 +52,7 @@ impl FieldAttributes {
 	pub fn get_operations(&mut self) -> TokenStream {
 		if self.as_payload {
 			let field_name = &self.get_name();
-			let field_type = &self.get_final_type();
+			let wrapper_final_type = &self.get_wrapper_final_type();
 			let reference = &self.get_reference();
 			self.increment_modifications();
 			let new_reference = &self.get_reference();
@@ -67,13 +67,18 @@ impl FieldAttributes {
 
 			let unwrapped_final_name = format!("unwrapped_{}", name);
 			let unwrapped = Ident::new(&unwrapped_final_name, Span::call_site());
+			let update: TokenStream = if self.modifications == 1 {
+				quote! { #new_reference = Some(#reference.clone()); }
+			} else {
+				quote! { #new_reference = Some(#reference); }
+			};
 
 			if self.is_option() {
 				quote! {
-					let mut #new_reference: #field_type = None;
+					let mut #new_reference: #wrapper_final_type = None;
 					if let Some(#unwrapped) = #wrapper_reference.as_ref() {
 						#(#operations)*
-						#new_reference = Some(#reference);
+						#update
 					}
 				}
 			} else {
@@ -81,10 +86,10 @@ impl FieldAttributes {
 				let message = &self.required_args.message;
 
 				quote! {
-				  let mut #new_reference: #field_type = None;
+				  let mut #new_reference: #wrapper_final_type = None;
 				  if let Some(#unwrapped) = #wrapper_reference.as_ref() {
 						#(#operations)*
-						#new_reference = Some(#reference);
+						#update
 					} else {
 					  errors.push(ValidationError::builder()
 								.with_field(#field_name)
@@ -108,7 +113,7 @@ impl FieldAttributes {
 	}
 
 	pub fn is_option(&self) -> bool {
-		if let Type::Path(type_path) = &self._type
+		if let Type::Path(type_path) = &self.final_type
 			&& let Some(segment) = type_path.path.segments.last()
 		{
 			return segment.ident == "Option";
@@ -118,44 +123,44 @@ impl FieldAttributes {
 	}
 
 	pub fn get_type(&self) -> &Type {
-		&self._type
+		&self.final_type
 	}
 
-	pub fn get_final_type(&self) -> Type {
-		let _type = &self._type;
+	pub fn get_wrapper_final_type(&self) -> Type {
+		let final_type = &self.final_type;
 		if self.as_payload && !self.is_option() {
-			let _option_type: Type = parse_quote! {
-				Option<#_type>
+			let option_type: Type = parse_quote! {
+				Option<#final_type>
 			};
 
-			_option_type
+			option_type
 		} else {
-			let __type: Type = parse_quote! {
-			  #_type
+			let raw_type: Type = parse_quote! {
+			  #final_type
 			};
 
-			__type
+			raw_type
 		}
 	}
 
 	pub fn get_initial_type(&self) -> Type {
-		let _type = match &self._initial_type {
-			Some(_type) => _type,
-			None => &self._type,
+		let initial_type = match &self.initial_type {
+			Some(initial_type) => initial_type,
+			None => &self.final_type,
 		};
 
 		if self.as_payload && !self.is_option() {
-			let _option_type: Type = parse_quote! {
-				Option<#_type>
+			let option_type: Type = parse_quote! {
+				Option<#initial_type>
 			};
 
-			_option_type
+			option_type
 		} else {
-			let __type: Type = parse_quote! {
-			  #_type
+			let raw_type: Type = parse_quote! {
+			  #initial_type
 			};
 
-			__type
+			raw_type
 		}
 	}
 

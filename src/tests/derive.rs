@@ -1,9 +1,9 @@
-use crate::core::{Validate, ValidationError};
+use crate::core::Validate;
 
 #[derive(Debug, Validate)]
 #[validate(payload)]
 struct User {
-	#[modify(lowercase, uppercase)]
+	#[modify(uppercase)]
 	pub name: String,
 }
 

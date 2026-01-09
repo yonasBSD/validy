@@ -1,18 +1,30 @@
 use crate::{
-	Output, factories::core::AbstractValidationFactory, fields::FieldAttributes, import_async_trait, import_validation,
+	Output,
+	factories::{
+		boilerplates::{
+			commons::get_throw_errors_boilerplate, modifications::get_modification_with_context_factory_boilerplates,
+		},
+		core::AbstractValidationFactory,
+		utils::modifications::ModificationsCodeFactory,
+	},
+	fields::FieldAttributes,
+	import_async_trait, import_validation,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Ident, Type};
 
 pub struct ModificationWithContextFactory<'a> {
-	name: &'a Ident,
-	context: &'a Type,
+	struct_name: &'a Ident,
+	context_type: &'a Type,
 }
 
 impl<'a> ModificationWithContextFactory<'a> {
-	pub fn new(name: &'a Ident, context: &'a Type) -> Self {
-		Self { name, context }
+	pub fn new(struct_name: &'a Ident, context_type: &'a Type) -> Self {
+		Self {
+			struct_name,
+			context_type,
+		}
 	}
 }
 
@@ -20,60 +32,39 @@ impl<'a> AbstractValidationFactory for ModificationWithContextFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
 		let async_trait_import = import_async_trait();
 		let import = import_validation();
+		let struct_name = self.struct_name;
+		let context_type = self.context_type;
 
-		let name = self.name;
-		let context = self.context;
+		let mut code_factory = ModificationsCodeFactory(&mut fields);
+		let operations = code_factory.operations();
+		let commit = code_factory.commit();
 
-		let commits: Vec<TokenStream> = fields
-			.iter()
-			.clone()
-			.filter(|field| field.get_modifications() > 0)
-			.map(|field| {
-				let reference = field.get_reference();
-				let original_reference = field.get_original_reference();
-				quote! {
-				  #original_reference = #reference;
-				}
-			})
-			.collect();
+		let boilerplates = get_modification_with_context_factory_boilerplates(struct_name, context_type);
+		let throw_errors = get_throw_errors_boilerplate();
 
-		let operations = fields.iter_mut().flat_map(|field| field.get_operations());
-
-		quote! {
-		  use #import;
+		#[rustfmt::skip]
+		let result = quote! {
 		  use #async_trait_import;
+			use #import;
 
-			impl ValidateAndModificateWithContext<#context> for #name {
-			  fn validate_and_modificate_with_context(&mut self, context: &#context) -> Result<(), ValidationErrors> {
-					let mut errors = Vec::<ValidationError>::new();
+			impl ValidateAndModificateWithContext<#context_type> for #struct_name {
+			  fn validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+					 let mut errors = Vec::<ValidationError>::new();
 
-				  #(#operations)*
+					#(#operations)*
 
-				  if errors.is_empty() {
-						#(#commits)*
-					  Ok(())
-				  } else {
-						let map: ValidationErrors = errors
-							.into_iter()
-							.map(|e| match e {
-								ValidationError::Node(e) => (e.field.clone(), ValidationError::Node(e)),
-								ValidationError::Leaf(e) => (e.field.clone(), ValidationError::Leaf(e)),
-							})
-							.collect();
+					if errors.is_empty() {
+						#commit
+					} else {
+						#throw_errors
+					}
+				}
+			}
 
-					  Err(map)
-				  }
-			  }
-		  }
+			#boilerplates
+		};
 
-			#[async_trait]
-		  impl<C> AsyncValidateAndModificateWithContext<#context> for #name {
-			  async fn async_validate_and_modificate_with_context(&mut self, context: &#context) -> Result<(), ValidationErrors> {
-				  self.validate_and_modificate_with_context(context)
-			  }
-		  }
-		}
-		.into()
+		result.into()
 	}
 
 	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {
@@ -82,11 +73,11 @@ impl<'a> AbstractValidationFactory for ModificationWithContextFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let context = &self.context;
+		let context_type = &self.context_type;
 
 		quote! {
 		  let mut #new_reference = #reference.clone();
-		  if let Err(e) = <#field_type as ValidateAndModificateWithContext<#context>>::validate_and_modificate_with_context(&mut #new_reference, context) {
+		  if let Err(e) = <#field_type as ValidateAndModificateWithContext<#context_type>>::validate_and_modificate_with_context(&mut #new_reference, context) {
 				errors.push(ValidationError::Node(NestedValidationError::from(
 					e,
 					#field_name,

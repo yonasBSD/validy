@@ -137,7 +137,10 @@ pub fn get_validation_by_attr_macro(
 		m if m.path.is_ident("after_now") => create_after_now(m.input, field),
 		m if m.path.is_ident("naive_time") => create_naive_time(m.input, field),
 		m if m.path.is_ident("now") => create_now(m.input, field),
-		_ => quote! {},
+		_ => {
+			emit_error!(meta.input.span(), "unknown value");
+			quote! {}
+		}
 	}
 }
 
@@ -175,7 +178,10 @@ pub fn get_operation_by_attr_macro(
 		m if m.path.is_ident("shouty_kebab_case") => create_shouty_kebab_case(field),
 		m if m.path.is_ident("train_case") => create_train_case(field),
 		m if m.path.is_ident("inline") => create_inline_modification(m.input, field),
-		_ => quote! {},
+		_ => {
+			emit_error!(meta.input.span(), "unknown value");
+			quote! {}
+		}
 	}
 }
 
@@ -188,6 +194,9 @@ pub fn get_special_by_attr_macro(
 	match meta {
 		m if m.path.is_ident("nested") => factory.create_nested(field),
 		m if m.path.is_ident("for_each") => create_for_each(factory, m, field, attributes),
-		_ => quote! {},
+		_ => {
+			emit_error!(meta.input.span(), "unknown value");
+			quote! {}
+		}
 	}
 }
