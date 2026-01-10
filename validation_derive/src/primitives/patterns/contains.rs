@@ -1,11 +1,14 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Error, LitStr, Result, parse::ParseStream};
 
 use crate::{
+	ImportsSet,
 	fields::FieldAttributes,
-	imports::import_validation_functions,
+	imports::Import,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -40,11 +43,14 @@ impl ArgParser for ContainsArgs {
 	}
 }
 
-pub fn create_contains(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_contains(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports.borrow_mut().add(Import::ValidationFunction(
+		"contains::validate_contains as validate_contains_fn",
+	));
+
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation_functions("contains::validate_contains");
 
 	let ContainsArgs { items, code, message } = match content {
 		Ok(content) => parse_attrs(&content)
@@ -59,8 +65,7 @@ pub fn create_contains(input: ParseStream, field: &FieldAttributes) -> TokenStre
 	}
 
 	quote! {
-	  use #import;
-		if let Err(e) = validate_contains(&#reference, #items, #field_name, #code, #message) {
+		if let Err(e) = validate_contains_fn(&#reference, #items, #field_name, #code, #message) {
 		  errors.push(e);
 	  }
 	}

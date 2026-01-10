@@ -11,7 +11,7 @@ use crate::{
 	imports::Import,
 };
 use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{format_ident, quote};
 use syn::Ident;
 
 pub struct AsyncPayloadFactory<'a> {
@@ -62,6 +62,14 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
     		  }
    	    }
 
+   			#[async_trait]
+   			impl SpecificAsyncValidateAndParse for #struct_name {
+          type Wrapper = #wrapper_ident;
+         	async fn specific_async_validate_and_parse(___wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
+       			<#struct_name as AsyncValidateAndParse<#wrapper_ident>>::async_validate_and_parse(___wrapper).await
+    		  }
+   	    }
+
         #boilerplates
 			};
 		};
@@ -75,7 +83,7 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", field_type.to_token_stream().to_string());
+		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
 
 		quote! {
 		  let mut #new_reference = #reference.clone();

@@ -1,11 +1,14 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Error, ExprRange, LitStr, Result, parse::ParseStream};
 
 use crate::{
+	ImportsSet,
 	fields::FieldAttributes,
-	imports::import_validation_functions,
+	imports::Import,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -40,11 +43,14 @@ impl ArgParser for LengthArgs {
 	}
 }
 
-pub fn create_length(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_length(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports.borrow_mut().add(Import::ValidationFunction(
+		"length::validate_length as validate_length_fn",
+	));
+
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation_functions("length::validate_length");
 
 	let LengthArgs { range, code, message } = match content {
 		Ok(content) => parse_attrs(&content)
@@ -58,8 +64,7 @@ pub fn create_length(input: ParseStream, field: &FieldAttributes) -> TokenStream
 	}
 
 	quote! {
-	  use #import;
-		if let Err(e) = validate_length(&#reference, #range, #field_name, #code, #message) {
+		if let Err(e) = validate_length_fn(&#reference, #range, #field_name, #code, #message) {
 		  errors.push(e);
 	  }
 	}

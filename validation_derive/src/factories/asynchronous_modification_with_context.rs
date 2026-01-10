@@ -60,6 +60,14 @@ impl<'a> AbstractValidationFactory for AsyncModificationWithContextFactory<'a> {
   				  }
   			  }
   		  }
+
+   			#[async_trait]
+   		  impl SpecificAsyncValidateAndModificateWithContext for #struct_name {
+          type Context = #context_type;
+   			  async fn specific_async_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+            <#struct_name as AsyncValidateAndModificateWithContext<#context_type>>::async_validate_and_modificate_with_context(self, context).await
+   			  }
+   		  }
 			};
 		};
 
@@ -72,7 +80,7 @@ impl<'a> AbstractValidationFactory for AsyncModificationWithContextFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let context_type = &self.context_type;
+		let context_type = self.context_type;
 
 		quote! {
 		  let mut #new_reference = #reference.clone();

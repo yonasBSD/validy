@@ -1,12 +1,12 @@
 use crate::core::Validate;
 
-#[derive(Debug, Validate)]
-#[validate(payload)]
-struct User {
-	#[modify(uppercase)]
-	#[validate(email)]
-	pub name: String,
-}
+// #[derive(Debug, Validate)]
+// #[validate(payload)]
+// struct User {
+// 	#[modify(uppercase)]
+// 	#[validate(email)]
+// 	pub name: String,
+// }
 
 // #[derive(Debug, Validate)]
 // #[validate(payload)]

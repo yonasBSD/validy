@@ -1,9 +1,12 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Error, Result, Type, meta::ParseNestedMeta, parse::ParseStream};
 
 use crate::{
+	ImportsSet,
 	attributes::ValidationAttributes,
 	core::{get_operation_by_attr_macro, get_special_by_attr_macro, get_validation_by_attr_macro},
 	factories::core::AbstractValidationFactory,
@@ -68,6 +71,7 @@ pub fn create_for_each(
 	meta: ParseNestedMeta<'_>,
 	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
+	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	let mut operations = Vec::<TokenStream>::new();
 	let reference = field.get_reference();
@@ -90,19 +94,19 @@ pub fn create_for_each(
 			args.update_from_item_type(field);
 		} else if meta.path.is_ident("validate") {
 			let _ = meta.parse_nested_meta(|meta| {
-				let validation = get_validation_by_attr_macro(factory, meta, field, attributes);
+				let validation = get_validation_by_attr_macro(factory, meta, field, attributes, imports);
 				operations.push(validation.clone());
 				Ok(())
 			});
 		} else if meta.path.is_ident("modify") {
 			let _ = meta.parse_nested_meta(|meta| {
-				let operation = get_operation_by_attr_macro(factory, meta, field, attributes);
+				let operation = get_operation_by_attr_macro(factory, meta, field, attributes, imports);
 				operations.push(operation.clone());
 				Ok(())
 			});
 		} else if meta.path.is_ident("special") {
 			let _ = meta.parse_nested_meta(|meta| {
-				let operation = get_special_by_attr_macro(factory, meta, field, attributes);
+				let operation = get_special_by_attr_macro(factory, meta, field, attributes, imports);
 				operations.push(operation.clone());
 				Ok(())
 			});

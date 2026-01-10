@@ -63,6 +63,13 @@ pub fn get_modification_with_context_boilerplate(
 			    #method
 			  }
 		  }
+
+			impl SpecificValidateAndModificateWithContext for #struct_name {
+			  type Context = #context_type;
+        fn specific_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+          #method
+        }
+      }
     },
     None => quote! {
       impl<C> ValidateAndModificateWithContext<C> for #struct_name {
@@ -113,7 +120,15 @@ pub fn get_async_modification_with_context_boilerplate(
     Some(context_type) => quote! {
   		#[async_trait]
 		  impl AsyncValidateAndModificateWithContext<#context_type> for #struct_name {
-		  async fn async_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+		    async fn async_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+				  #method
+			  }
+		  }
+
+  		#[async_trait]
+		  impl SpecificAsyncValidateAndModificateWithContext for #struct_name {
+				type Context = #context_type;
+		    async fn specific_async_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
 				  #method
 			  }
 		  }

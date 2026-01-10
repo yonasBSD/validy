@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use syn::{Path, parse_str};
+use syn::parse_str;
 
 pub struct ImportsSet {
 	set: HashSet<Import>,

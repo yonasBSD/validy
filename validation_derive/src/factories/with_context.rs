@@ -63,6 +63,13 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
   			  }
   		  }
 
+        impl SpecificValidateWithContext for #struct_name {
+          type Context = #context_type;
+  			  fn specific_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
+  					<#struct_name as ValidateWithContext<#context_type>>::validate_with_context(self, context)
+  			  }
+  		  }
+
   			#boilerplates
       };
 		};
@@ -74,7 +81,7 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		let reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let context_type = &self.context_type;
+		let context_type = self.context_type;
 
 		quote! {
 		  if let Err(e) = <#field_type as ValidateWithContext<#context_type>>::validate_with_context(&#reference, &context) {

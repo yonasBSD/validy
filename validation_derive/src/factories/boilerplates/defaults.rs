@@ -88,6 +88,13 @@ pub fn get_default_with_context_boilerplate(
 			    #method
 			  }
 		  }
+
+		  impl SpecificValidateWithContext for #struct_name {
+				type Context = #context_type;
+			  fn specific_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
+			    #method
+			  }
+		  }
     },
     None => quote! {
   		impl<C> ValidateWithContext<C> for #struct_name {
@@ -126,6 +133,14 @@ pub fn get_async_default_with_context_boilerplate(
 			#[async_trait]
 		  impl AsyncValidateWithContext<#context_type> for #struct_name {
 			  async fn async_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
+			    #method
+			  }
+		  }
+
+			#[async_trait]
+		  impl SpecificAsyncValidateWithContext for #struct_name {
+				type Context = #context_type;
+			  async fn specific_async_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
 			    #method
 			  }
 		  }

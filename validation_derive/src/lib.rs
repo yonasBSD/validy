@@ -74,7 +74,7 @@ pub fn validation_macro(input: Input) -> Output {
 fn impl_validation_macro(ast: &DeriveInput) -> Output {
 	let fields = get_fields(ast);
 	let mut attributes = get_attributes(ast);
-	let mut imports = RefCell::new(ImportsSet::new());
+	let imports = RefCell::new(ImportsSet::new());
 
 	if attributes.modify && attributes.payload {
 		emit_error!(ast.span(), "payload implies modify");

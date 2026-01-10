@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -56,7 +58,7 @@ pub fn get_fields_attributes(
 	fields: &Fields,
 	factory: &dyn AbstractValidationFactory,
 	attributes: &ValidationAttributes,
-	imports: &mut ImportsSet,
+	imports: &RefCell<ImportsSet>,
 ) -> Vec<FieldAttributes> {
 	let mut fields_attributes = Vec::<FieldAttributes>::new();
 
@@ -79,19 +81,22 @@ pub fn get_fields_attributes(
 		for attr in &field.attrs {
 			if attr.path().is_ident("validate") {
 				let _ = attr.parse_nested_meta(|meta| {
-					let validation = get_validation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					let validation =
+						get_validation_by_attr_macro(factory, meta, &mut field_attributes, attributes, imports);
 					field_attributes.add_operation(validation.clone());
 					Ok(())
 				});
 			} else if attr.path().is_ident("modify") {
 				let _ = attr.parse_nested_meta(|meta| {
-					let operation = get_operation_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					let operation =
+						get_operation_by_attr_macro(factory, meta, &mut field_attributes, attributes, imports);
 					field_attributes.add_operation(operation.clone());
 					Ok(())
 				});
 			} else if attr.path().is_ident("special") {
 				let _ = attr.parse_nested_meta(|meta| {
-					let operation = get_special_by_attr_macro(factory, meta, &mut field_attributes, attributes);
+					let operation =
+						get_special_by_attr_macro(factory, meta, &mut field_attributes, attributes, imports);
 					field_attributes.add_operation(operation.clone());
 					Ok(())
 				});
@@ -109,11 +114,12 @@ pub fn get_validation_by_attr_macro(
 	meta: ParseNestedMeta<'_>,
 	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
+	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	match meta {
 		m if m.path.is_ident("required") => create_required(m.input, field),
-		m if m.path.is_ident("is_some") => create_is_some(m.input, field),
-		m if m.path.is_ident("is_none") => create_is_none(m.input, field),
+		m if m.path.is_ident("is_some") => create_is_some(m.input, field, imports),
+		m if m.path.is_ident("is_none") => create_is_none(m.input, field, imports),
 		m if m.path.is_ident("inline") => create_inline_validation(m.input, field),
 		m if m.path.is_ident("custom") => create_custom(m.input, field),
 		m if m.path.is_ident("custom_with_context") => create_custom_with_context(m.input, field, attributes),
@@ -121,24 +127,24 @@ pub fn get_validation_by_attr_macro(
 		m if m.path.is_ident("async_custom_with_context") => {
 			create_async_custom_with_context(m.input, field, attributes)
 		}
-		m if m.path.is_ident("ip") => create_ip(m.input, field),
-		m if m.path.is_ident("ipv4") => create_ipv4(m.input, field),
-		m if m.path.is_ident("ipv6") => create_ipv6(m.input, field),
-		m if m.path.is_ident("pattern") => create_pattern(m.input, field),
-		m if m.path.is_ident("url") => create_url(m.input, field),
-		m if m.path.is_ident("email") => create_email(m.input, field),
-		m if m.path.is_ident("prefix") => create_prefix(m.input, field),
-		m if m.path.is_ident("suffix") => create_suffix(m.input, field),
-		m if m.path.is_ident("range") => create_range(m.input, field),
-		m if m.path.is_ident("length") => create_length(m.input, field),
-		m if m.path.is_ident("contains") => create_contains(m.input, field),
-		m if m.path.is_ident("any") => create_any(m.input, field),
-		m if m.path.is_ident("none") => create_none(m.input, field),
-		m if m.path.is_ident("time") => create_time(m.input, field),
-		m if m.path.is_ident("before_now") => create_before_now(m.input, field),
-		m if m.path.is_ident("after_now") => create_after_now(m.input, field),
-		m if m.path.is_ident("naive_time") => create_naive_time(m.input, field),
-		m if m.path.is_ident("now") => create_now(m.input, field),
+		m if m.path.is_ident("ip") => create_ip(m.input, field, imports),
+		m if m.path.is_ident("ipv4") => create_ipv4(m.input, field, imports),
+		m if m.path.is_ident("ipv6") => create_ipv6(m.input, field, imports),
+		m if m.path.is_ident("pattern") => create_pattern(m.input, field, imports),
+		m if m.path.is_ident("url") => create_url(m.input, field, imports),
+		m if m.path.is_ident("email") => create_email(m.input, field, imports),
+		m if m.path.is_ident("prefix") => create_prefix(m.input, field, imports),
+		m if m.path.is_ident("suffix") => create_suffix(m.input, field, imports),
+		m if m.path.is_ident("range") => create_range(m.input, field, imports),
+		m if m.path.is_ident("length") => create_length(m.input, field, imports),
+		m if m.path.is_ident("contains") => create_contains(m.input, field, imports),
+		m if m.path.is_ident("any") => create_any(m.input, field, imports),
+		m if m.path.is_ident("none") => create_none(m.input, field, imports),
+		m if m.path.is_ident("time") => create_time(m.input, field, imports),
+		m if m.path.is_ident("before_now") => create_before_now(m.input, field, imports),
+		m if m.path.is_ident("after_now") => create_after_now(m.input, field, imports),
+		m if m.path.is_ident("naive_time") => create_naive_time(m.input, field, imports),
+		m if m.path.is_ident("now") => create_now(m.input, field, imports),
 		_ => {
 			emit_error!(meta.input.span(), "unknown value");
 			quote! {}
@@ -151,6 +157,7 @@ pub fn get_operation_by_attr_macro(
 	meta: ParseNestedMeta<'_>,
 	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
+	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	if !attributes.modify {
 		emit_error!(meta.input.span(), "requires modify attribute");
@@ -171,14 +178,14 @@ pub fn get_operation_by_attr_macro(
 		m if m.path.is_ident("trim_start") => create_trim_start(field),
 		m if m.path.is_ident("uppercase") => create_uppercase(field),
 		m if m.path.is_ident("lowercase") => create_lowercase(field),
-		m if m.path.is_ident("capitalize") => create_capitalize(field),
-		m if m.path.is_ident("camel_case") => create_camel_case(field),
-		m if m.path.is_ident("lower_camel_case") => create_lower_camel_case(field),
-		m if m.path.is_ident("snake_case") => create_snake_case(field),
-		m if m.path.is_ident("shouty_snake_case") => create_shouty_snake_case(field),
-		m if m.path.is_ident("kebab_case") => create_kebab_case(field),
-		m if m.path.is_ident("shouty_kebab_case") => create_shouty_kebab_case(field),
-		m if m.path.is_ident("train_case") => create_train_case(field),
+		m if m.path.is_ident("capitalize") => create_capitalize(field, imports),
+		m if m.path.is_ident("camel_case") => create_camel_case(field, imports),
+		m if m.path.is_ident("lower_camel_case") => create_lower_camel_case(field, imports),
+		m if m.path.is_ident("snake_case") => create_snake_case(field, imports),
+		m if m.path.is_ident("shouty_snake_case") => create_shouty_snake_case(field, imports),
+		m if m.path.is_ident("kebab_case") => create_kebab_case(field, imports),
+		m if m.path.is_ident("shouty_kebab_case") => create_shouty_kebab_case(field, imports),
+		m if m.path.is_ident("train_case") => create_train_case(field, imports),
 		m if m.path.is_ident("inline") => create_inline_modification(m.input, field),
 		_ => {
 			emit_error!(meta.input.span(), "unknown value");
@@ -192,10 +199,11 @@ pub fn get_special_by_attr_macro(
 	meta: ParseNestedMeta<'_>,
 	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
+	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	match meta {
 		m if m.path.is_ident("nested") => factory.create_nested(field),
-		m if m.path.is_ident("for_each") => create_for_each(factory, m, field, attributes),
+		m if m.path.is_ident("for_each") => create_for_each(factory, m, field, attributes, imports),
 		_ => {
 			emit_error!(meta.input.span(), "unknown value");
 			quote! {}

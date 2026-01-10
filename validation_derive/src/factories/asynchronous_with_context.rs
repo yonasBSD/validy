@@ -64,6 +64,14 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
   			  }
   		  }
 
+   			#[async_trait]
+   		  impl SpecificAsyncValidateWithContext for #struct_name {
+          type Context = #context_type;
+   			  async fn specific_async_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
+            <#struct_name as AsyncValidateWithContext<#context_type>>::async_validate_with_context(self, context).await
+   			  }
+   		  }
+
   			#boilerplates
 			};
 		};
@@ -75,7 +83,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
 		let reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let context_type = &self.context_type;
+		let context_type = self.context_type;
 
 		quote! {
 		  if let Err(e) = <#field_type as AsyncValidateWithContext<#context_type>>::async_validate_with_context(&#reference, &context).await {

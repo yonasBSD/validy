@@ -64,6 +64,13 @@ impl<'a> AbstractValidationFactory for ModificationWithContextFactory<'a> {
   				}
   			}
 
+  			impl SpecificValidateAndModificateWithContext for #struct_name {
+          type Context = #context_type;
+  			  fn specific_validate_and_modificate_with_context(&mut self, context: &#context_type) -> Result<(), ValidationErrors> {
+            <#struct_name as ValidateAndModificateWithContext<#context_type>>::validate_and_modificate_with_context(self, context)
+          }
+        }
+
   			#boilerplates
 			};
 		};
@@ -77,7 +84,7 @@ impl<'a> AbstractValidationFactory for ModificationWithContextFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let context_type = &self.context_type;
+		let context_type = self.context_type;
 
 		quote! {
 		  let mut #new_reference = #reference.clone();

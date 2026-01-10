@@ -12,9 +12,10 @@ regex = { version = "1.12.2", optional = true }
 moka = { version = "0.12.12", features = ["sync"], optional = true }
 heck = { version = "0.5.0", optional = true }
 chrono = { version = "0.4.42", optional = true }
+axum = { version = "0.8.8", optional = true }
 
 [features]
-all = ["derive", "validation", "modification", "email", "pattern", "ip", "time"]
+all = ["derive", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
 default = ["derive", "validation", "modification"]
 derive = ["dep:validation_derive", "dep:serde"]
 validation = []
@@ -23,3 +24,4 @@ email = ["dep:email_address"]
 pattern = ["dep:moka", "dep:regex"]
 ip = []
 time = ["dep:chrono"]
+axum = ["dep:axum", "derive"]

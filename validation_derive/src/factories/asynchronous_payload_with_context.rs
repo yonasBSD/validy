@@ -10,7 +10,7 @@ use crate::{
 	imports::Import,
 };
 use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{format_ident, quote};
 use syn::{Ident, Type};
 
 pub struct AsyncPayloadWithContextFactory<'a> {
@@ -64,6 +64,15 @@ impl<'a> AbstractValidationFactory for AsyncPayloadWithContextFactory<'a> {
             }
     		  }
    	    }
+
+        #[async_trait]
+   			impl SpecificAsyncValidateAndParseWithContext for #struct_name {
+          type Wrapper = #wrapper_ident;
+          type Context = #context_type;
+         	async fn specific_async_validate_and_parse_with_context(___wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
+       			<#struct_name as AsyncValidateAndParseWithContext<#wrapper_ident, #context_type>>::async_validate_and_parse_with_context(___wrapper, context).await
+    		  }
+   	    }
 			};
 		};
 
@@ -76,7 +85,7 @@ impl<'a> AbstractValidationFactory for AsyncPayloadWithContextFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", field_type.to_token_stream().to_string());
+		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
 		let context_type = self.context_type;
 
 		quote! {

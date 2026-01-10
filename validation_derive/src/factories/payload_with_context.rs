@@ -13,7 +13,7 @@ use crate::{
 	imports::Import,
 };
 use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{format_ident, quote};
 use syn::{Ident, Type};
 
 pub struct PayloadWithContextFactory<'a> {
@@ -68,6 +68,14 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
     		  }
    	    }
 
+        impl SpecificValidateAndParseWithContext for #struct_name {
+          type Wrapper = #wrapper_ident;
+          type Context = #context_type;
+     			fn specific_validate_and_parse_with_context(___wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
+  					<#struct_name as ValidateAndParseWithContext<#wrapper_ident, #context_type>>::validate_and_parse_with_context(___wrapper, context)
+  			  }
+  		  }
+
         #boilerplates
 			};
 		};
@@ -81,7 +89,7 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
 		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", field_type.to_token_stream().to_string());
+		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
 		let context_type = self.context_type;
 
 		quote! {

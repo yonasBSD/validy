@@ -26,7 +26,7 @@ impl<'a> PayloadsCodeFactory<'a> {
 		#[rustfmt::skip]
 		let wrapper_struct = quote! {
   		#[derive(Deserialize)]
-  		struct #wrapper_ident {
+  		pub struct #wrapper_ident {
   		  #(#field_declarations)*
   		}
 		};
@@ -72,7 +72,7 @@ impl<'a> PayloadsCodeFactory<'a> {
 							  .collect();
 
 						  map
-						})?
+						})?,
 					}
 				}
 			})

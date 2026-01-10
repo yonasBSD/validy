@@ -1,11 +1,14 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Error, Ident, LitBool, LitStr, Result, parse::ParseStream};
 
 use crate::{
+	ImportsSet,
 	fields::FieldAttributes,
-	imports::import_validation_functions,
+	imports::Import,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -57,11 +60,14 @@ impl ArgParser for BeforeArgs {
 	}
 }
 
-pub fn create_before_now(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_before_now(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports.borrow_mut().add(Import::ValidationFunction(
+		"time::validate_is_before_now as validate_is_before_now_fn",
+	));
+
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation_functions("time::validate_is_before_now");
 
 	let BeforeArgs {
 		accept_equals,
@@ -75,8 +81,7 @@ pub fn create_before_now(input: ParseStream, field: &FieldAttributes) -> TokenSt
 	};
 
 	quote! {
-	  use #import;
-		if let Err(e) = validate_is_before_now(&#reference, #accept_equals, #field_name, #code, #message) {
+		if let Err(e) = validate_is_before_now_fn(&#reference, #accept_equals, #field_name, #code, #message) {
 		  errors.push(e);
 	  }
 	}
