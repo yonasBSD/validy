@@ -1,6 +1,8 @@
 pub mod asynchronous;
 pub mod asynchronous_modification;
 pub mod asynchronous_modification_with_context;
+pub mod asynchronous_payload;
+pub mod asynchronous_payload_with_context;
 pub mod asynchronous_with_context;
 pub mod boilerplates;
 pub mod core;
@@ -8,5 +10,6 @@ pub mod default;
 pub mod modification;
 pub mod modification_with_context;
 pub mod payload;
+pub mod payload_with_context;
 pub mod utils;
 pub mod with_context;

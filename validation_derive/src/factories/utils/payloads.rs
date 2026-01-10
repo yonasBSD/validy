@@ -1,4 +1,4 @@
-use crate::{fields::FieldAttributes, imports::import_serde_deserialize};
+use crate::fields::FieldAttributes;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
@@ -7,7 +7,6 @@ pub struct PayloadsCodeFactory<'a>(pub &'a mut Vec<FieldAttributes>);
 
 impl<'a> PayloadsCodeFactory<'a> {
 	pub fn wrapper(&self, name: &'a Ident) -> (TokenStream, Ident) {
-		let serde_deserialize_import = import_serde_deserialize();
 		let wrapper_ident = format_ident!("{}Wrapper", name);
 		let field_declarations: Vec<TokenStream> = self
 			.0
@@ -26,8 +25,6 @@ impl<'a> PayloadsCodeFactory<'a> {
 
 		#[rustfmt::skip]
 		let wrapper_struct = quote! {
-		  use #serde_deserialize_import;
-
   		#[derive(Deserialize)]
   		struct #wrapper_ident {
   		  #(#field_declarations)*

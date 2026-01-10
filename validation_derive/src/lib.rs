@@ -6,11 +6,13 @@ mod imports;
 mod primitives;
 mod types;
 
+use std::cell::RefCell;
+
 use crate::{
 	attributes::get_attributes,
 	core::{get_fields, get_fields_attributes},
 	factories::core::get_factory,
-	imports::{import_async_trait, import_validation},
+	imports::ImportsSet,
 	types::{Input, Output},
 };
 
@@ -63,7 +65,7 @@ use syn::{DeriveInput, spanned::Spanned};
 /// * `async_custom(<function>)`: Modifies the value in-place using a custom async function.
 /// * `async_custom_with_context(<function>)`: Modifies the value in-place using a custom async function with context access.
 #[proc_macro_error]
-#[proc_macro_derive(Validate, attributes(validate, modify, complex))]
+#[proc_macro_derive(Validate, attributes(validate, modify, special))]
 pub fn validation_macro(input: Input) -> Output {
 	let ast = syn::parse(input).unwrap();
 	impl_validation_macro(&ast)
@@ -72,6 +74,7 @@ pub fn validation_macro(input: Input) -> Output {
 fn impl_validation_macro(ast: &DeriveInput) -> Output {
 	let fields = get_fields(ast);
 	let mut attributes = get_attributes(ast);
+	let mut imports = RefCell::new(ImportsSet::new());
 
 	if attributes.modify && attributes.payload {
 		emit_error!(ast.span(), "payload implies modify");
@@ -80,6 +83,6 @@ fn impl_validation_macro(ast: &DeriveInput) -> Output {
 	attributes.modify = attributes.modify || attributes.payload;
 
 	let factory = get_factory(&ast.ident, &attributes);
-	let fields_attributes = get_fields_attributes(fields, factory.as_ref(), &attributes);
-	factory.create(fields_attributes)
+	let fields_attributes = get_fields_attributes(fields, factory.as_ref(), &attributes, &imports);
+	factory.create(fields_attributes, &imports)
 }

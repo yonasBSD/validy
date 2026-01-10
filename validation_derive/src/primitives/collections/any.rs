@@ -1,11 +1,14 @@
+use std::cell::RefCell;
+
 use proc_macro_error::emit_error;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Error, ExprArray, LitStr, Result, parse::ParseStream};
 
 use crate::{
+	ImportsSet,
 	fields::FieldAttributes,
-	imports::import_validation_functions,
+	imports::Import,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -40,11 +43,14 @@ impl ArgParser for AnyArgs {
 	}
 }
 
-pub fn create_any(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_any(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports
+		.borrow_mut()
+		.add(Import::ValidationFunction("iter::validate_any as validate_any_fn"));
+
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation_functions("iter::validate_any");
 
 	let AnyArgs { items, code, message } = match content {
 		Ok(content) => parse_attrs(&content)
@@ -59,8 +65,7 @@ pub fn create_any(input: ParseStream, field: &FieldAttributes) -> TokenStream {
 	}
 
 	quote! {
-	  use #import;
-		if let Err(e) = validate_any(&#reference, #items, #field_name, #code, #message) {
+		if let Err(e) = validate_any_fn(&#reference, #items, #field_name, #code, #message) {
 		  errors.push(e);
 	  }
 	}

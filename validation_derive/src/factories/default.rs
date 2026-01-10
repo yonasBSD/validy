@@ -1,12 +1,14 @@
+use std::cell::RefCell;
+
 use crate::{
-	Output,
+	ImportsSet, Output,
 	factories::{
 		boilerplates::{commons::get_throw_errors_boilerplate, defaults::get_default_factory_boilerplates},
 		core::AbstractValidationFactory,
 		utils::defaults::DefaultsCodeFactory,
 	},
 	fields::FieldAttributes,
-	import_async_trait, import_validation,
+	imports::Import,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -23,9 +25,10 @@ impl<'a> ValidationFactory<'a> {
 }
 
 impl<'a> AbstractValidationFactory for ValidationFactory<'a> {
-	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
-		let async_trait_import = import_async_trait();
-		let import = import_validation();
+	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
+		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::AsyncTrait);
+		let imports = imports.borrow().build();
 		let struct_name = self.struct_name;
 
 		let mut code_factory = DefaultsCodeFactory(&mut fields);
@@ -34,27 +37,30 @@ impl<'a> AbstractValidationFactory for ValidationFactory<'a> {
 		let boilerplates = get_default_factory_boilerplates(struct_name);
 		let throw_errors = get_throw_errors_boilerplate();
 
-		quote! {
-		  use #async_trait_import;
-		  use #import;
+		#[rustfmt::skip]
+		let result = quote! {
+		  const _: () = {
+				#imports
 
-		  impl Validate for #struct_name {
-			  fn validate(&self) -> Result<(), ValidationErrors> {
-					let mut errors = Vec::<ValidationError>::new();
+  			impl Validate for #struct_name {
+  				fn validate(&self) -> Result<(), ValidationErrors> {
+    				let mut errors = Vec::<ValidationError>::new();
 
-				  #(#operations)*
+  					#(#operations)*
 
-				  if errors.is_empty() {
-					  Ok(())
-				  } else {
-						#throw_errors
-				  }
-			  }
-		  }
+  					if errors.is_empty() {
+  						Ok(())
+  					} else {
+  						#throw_errors
+  					}
+  				}
+  			}
 
-			#boilerplates
-		}
-		.into()
+			  #boilerplates
+			};
+		};
+
+		result.into()
 	}
 
 	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {

@@ -1,12 +1,14 @@
+use std::cell::RefCell;
+
 use crate::{
-	Output,
+	ImportsSet, Output,
 	factories::{
 		boilerplates::{commons::get_throw_errors_boilerplate, modifications::get_modification_factory_boilerplates},
 		core::AbstractValidationFactory,
 		utils::modifications::ModificationsCodeFactory,
 	},
 	fields::FieldAttributes,
-	import_async_trait, import_validation,
+	imports::Import,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -23,9 +25,10 @@ impl<'a> ModificationFactory<'a> {
 }
 
 impl<'a> AbstractValidationFactory for ModificationFactory<'a> {
-	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
-		let async_trait_import = import_async_trait();
-		let import = import_validation();
+	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
+		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::AsyncTrait);
+		let imports = imports.borrow().build();
 		let struct_name = self.struct_name;
 
 		let mut code_factory = ModificationsCodeFactory(&mut fields);
@@ -37,24 +40,25 @@ impl<'a> AbstractValidationFactory for ModificationFactory<'a> {
 
 		#[rustfmt::skip]
 		let result = quote! {
-		  use #async_trait_import;
-		  use #import;
+		  const _: () = {
+				#imports
 
-		  impl ValidateAndModificate for #struct_name {
-			  fn validate_and_modificate(&mut self) -> Result<(), ValidationErrors> {
-					let mut errors = Vec::<ValidationError>::new();
+  		  impl ValidateAndModificate for #struct_name {
+  			  fn validate_and_modificate(&mut self) -> Result<(), ValidationErrors> {
+  					let mut errors = Vec::<ValidationError>::new();
 
-				  #(#operations)*
+  				  #(#operations)*
 
-				  if errors.is_empty() {
-						#commit
-				  } else {
-						#throw_errors
-				  }
-			  }
-		  }
+  				  if errors.is_empty() {
+  						#commit
+  				  } else {
+  						#throw_errors
+  				  }
+  			  }
+  		  }
 
-			#boilerplates
+  			#boilerplates
+			};
 		};
 
 		result.into()

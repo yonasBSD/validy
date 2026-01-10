@@ -6,6 +6,7 @@ use crate::primitives::option::required::RequiredArgs;
 
 pub struct FieldAttributes {
 	final_type: Type,
+	current_type: Type,
 	initial_type: Option<Type>,
 	required_args: RequiredArgs,
 	as_payload: bool,
@@ -20,6 +21,7 @@ impl FieldAttributes {
 	pub fn from_named(final_type: &Type, name: &Ident, as_payload: bool) -> Self {
 		FieldAttributes {
 			final_type: final_type.clone(),
+			current_type: final_type.clone(),
 			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
@@ -34,6 +36,7 @@ impl FieldAttributes {
 	pub fn from_unamed(final_type: &Type, index: &Index, as_payload: bool) -> Self {
 		FieldAttributes {
 			final_type: final_type.clone(),
+			current_type: final_type.clone(),
 			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
@@ -124,6 +127,15 @@ impl FieldAttributes {
 
 	pub fn get_type(&self) -> &Type {
 		&self.final_type
+	}
+
+	pub fn get_current_type(&self) -> &Type {
+		&self.current_type
+	}
+
+	pub fn set_current_type(&mut self, current_type: &Type) {
+		self.current_type = current_type.clone();
+		self.final_type = current_type.clone();
 	}
 
 	pub fn get_wrapper_final_type(&self) -> Type {

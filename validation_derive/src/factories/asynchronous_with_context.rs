@@ -1,5 +1,7 @@
+use std::cell::RefCell;
+
 use crate::{
-	Output,
+	ImportsSet, Output,
 	factories::{
 		boilerplates::{
 			commons::get_throw_errors_boilerplate, defaults::get_async_default_factory_with_context_boilerplates,
@@ -8,7 +10,7 @@ use crate::{
 		utils::defaults::DefaultsCodeFactory,
 	},
 	fields::FieldAttributes,
-	import_async_trait, import_validation,
+	imports::Import,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -29,9 +31,10 @@ impl<'a> AsyncValidationWithContextFactory<'a> {
 }
 
 impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
-	fn create(&self, mut fields: Vec<FieldAttributes>) -> Output {
-		let async_trait_import = import_async_trait();
-		let import = import_validation();
+	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
+		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::AsyncTrait);
+		let imports = imports.borrow().build();
 		let struct_name = self.struct_name;
 		let context_type = self.context_type;
 
@@ -43,25 +46,26 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
 
 		#[rustfmt::skip]
 		let result = quote! {
-		  use #import;
-			use #async_trait_import;
+		  const _: () = {
+				#imports
 
-			#[async_trait]
-		  impl AsyncValidateWithContext<#context_type> for #struct_name {
-			  async fn async_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
-					let mut errors = Vec::<ValidationError>::new();
+  			#[async_trait]
+  		  impl AsyncValidateWithContext<#context_type> for #struct_name {
+  			  async fn async_validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
+  					let mut errors = Vec::<ValidationError>::new();
 
-				  #(#operations)*
+  				  #(#operations)*
 
-				  if errors.is_empty() {
-					  Ok(())
-				  } else {
-						#throw_errors
-				  }
-			  }
-		  }
+  				  if errors.is_empty() {
+  					  Ok(())
+  				  } else {
+  						#throw_errors
+  				  }
+  			  }
+  		  }
 
-			#boilerplates
+  			#boilerplates
+			};
 		};
 
 		result.into()

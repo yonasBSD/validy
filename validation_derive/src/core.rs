@@ -4,6 +4,7 @@ use quote::quote;
 use syn::{Data, DeriveInput, Field, Fields, Index, meta::ParseNestedMeta, spanned::Spanned};
 
 use crate::{
+	ImportsSet,
 	attributes::ValidationAttributes,
 	factories::core::AbstractValidationFactory,
 	fields::FieldAttributes,
@@ -55,6 +56,7 @@ pub fn get_fields_attributes(
 	fields: &Fields,
 	factory: &dyn AbstractValidationFactory,
 	attributes: &ValidationAttributes,
+	imports: &mut ImportsSet,
 ) -> Vec<FieldAttributes> {
 	let mut fields_attributes = Vec::<FieldAttributes>::new();
 

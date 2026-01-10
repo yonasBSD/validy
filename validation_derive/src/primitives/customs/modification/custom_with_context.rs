@@ -6,7 +6,6 @@ use syn::{Error, ExprArray, Ident, Result, parse::ParseStream};
 use crate::{
 	attributes::ValidationAttributes,
 	fields::FieldAttributes,
-	import_validation,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -45,7 +44,6 @@ pub fn create_custom_with_context_modification(
 	field.increment_modifications();
 	let new_reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation();
 
 	let CustomWithContextArgs { function, params } = match content {
 		Ok(content) => parse_attrs(&content)
@@ -63,7 +61,6 @@ pub fn create_custom_with_context_modification(
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
 	quote! {
-	  use #import;
 		let (mut #new_reference, error) = #function(&#reference, #field_name, context, #(#extra_args),*);
 		if let Some(error) = error {
 		  errors.push(error);

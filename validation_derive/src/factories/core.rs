@@ -1,12 +1,16 @@
+use std::cell::RefCell;
+
 use crate::{
-	Output,
+	ImportsSet, Output,
 	attributes::ValidationAttributes,
 	factories::{
 		asynchronous::AsyncValidationFactory, asynchronous_modification::AsyncModificationFactory,
 		asynchronous_modification_with_context::AsyncModificationWithContextFactory,
+		asynchronous_payload::AsyncPayloadFactory, asynchronous_payload_with_context::AsyncPayloadWithContextFactory,
 		asynchronous_with_context::AsyncValidationWithContextFactory, default::ValidationFactory,
 		modification::ModificationFactory, modification_with_context::ModificationWithContextFactory,
-		payload::PayloadFactory, with_context::ValidationWithContextFactory,
+		payload::PayloadFactory, payload_with_context::PayloadWithContextFactory,
+		with_context::ValidationWithContextFactory,
 	},
 	fields::FieldAttributes,
 };
@@ -14,7 +18,7 @@ use proc_macro2::TokenStream;
 use syn::Ident;
 
 pub trait AbstractValidationFactory {
-	fn create(&self, fields: Vec<FieldAttributes>) -> Output;
+	fn create(&self, fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output;
 	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream;
 }
 
@@ -32,6 +36,9 @@ pub fn get_factory<'a>(
 		(Some(context), false, false, false) => Box::new(ValidationWithContextFactory::new(name, context)),
 		(Some(context), false, true, false) => Box::new(AsyncModificationWithContextFactory::new(name, context)),
 		(Some(context), true, true, false) => Box::new(ModificationWithContextFactory::new(name, context)),
+		(Some(context), true, _, true) => Box::new(AsyncPayloadWithContextFactory::new(name, context)),
+		(Some(context), false, _, true) => Box::new(PayloadWithContextFactory::new(name, context)),
+		(None, true, _, true) => Box::new(AsyncPayloadFactory::new(name)),
 		(None, false, _, true) => Box::new(PayloadFactory::new(name)),
 		(None, true, true, false) => Box::new(AsyncModificationFactory::new(name)),
 		(None, false, true, false) => Box::new(ModificationFactory::new(name)),

@@ -1,16 +1,20 @@
+use std::cell::RefCell;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{fields::FieldAttributes, imports::import_modification_functions};
+use crate::{ImportsSet, fields::FieldAttributes, imports::Import};
 
-pub fn create_camel_case(field: &mut FieldAttributes) -> TokenStream {
+pub fn create_camel_case(field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports
+		.borrow_mut()
+		.add(Import::ModificationFunction("cases::camel_case as camel_case_fn"));
+
 	let reference = field.get_reference();
 	field.increment_modifications();
 	let new_reference = field.get_reference();
-	let import = import_modification_functions("cases::camel_case");
 
 	quote! {
-	  use #import;
-		let mut #new_reference = camel_case(&#reference);
+		let mut #new_reference = camel_case_fn(&#reference);
 	}
 }

@@ -1,16 +1,20 @@
+use std::cell::RefCell;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{fields::FieldAttributes, imports::import_modification_functions};
+use crate::{ImportsSet, fields::FieldAttributes, imports::Import};
 
-pub fn create_capitalize(field: &mut FieldAttributes) -> TokenStream {
+pub fn create_capitalize(field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+	imports
+		.borrow_mut()
+		.add(Import::ModificationFunction("cases::capitalize as capitalize_fn"));
+
 	let reference = field.get_reference();
 	field.increment_modifications();
 	let new_reference = field.get_reference();
-	let import = import_modification_functions("cases::capitalize");
 
 	quote! {
-	  use #import;
-		let mut #new_reference = capitalize(&#reference);
+		let mut #new_reference = capitalize_fn(&#reference);
 	}
 }

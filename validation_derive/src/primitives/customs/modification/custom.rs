@@ -5,7 +5,6 @@ use syn::{Error, ExprArray, Ident, Result, parse::ParseStream};
 
 use crate::{
 	fields::FieldAttributes,
-	import_validation,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
@@ -35,7 +34,6 @@ pub fn create_custom_modification(input: ParseStream, field: &mut FieldAttribute
 	field.increment_modifications();
 	let new_reference = field.get_reference();
 	let content = remove_parens(input);
-	let import = import_validation();
 
 	let CustomArgs { function, params } = match content {
 		Ok(content) => parse_attrs(&content)
@@ -53,7 +51,6 @@ pub fn create_custom_modification(input: ParseStream, field: &mut FieldAttribute
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
 	quote! {
-	  use #import;
 		let (mut #new_reference, error) = #function(&#reference, #field_name, #(#extra_args),*);
 		if let Some(error) = error {
 		  errors.push(error);

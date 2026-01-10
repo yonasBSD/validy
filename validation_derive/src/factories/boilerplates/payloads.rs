@@ -18,6 +18,45 @@ pub fn get_payload_factory_boilerplates(struct_name: &Ident, wrapper_ident: &Ide
 	result
 }
 
+pub fn get_payload_with_context_factory_boilerplates(
+	struct_name: &Ident,
+	wrapper_ident: &Ident,
+	context_type: &Type,
+) -> TokenStream {
+	let method = quote! { <#struct_name as ValidateAndParse<#wrapper_ident, #context_type>>::validate_and_parse_with_context(___wrapper, context) };
+	let boilerplates = vec![get_async_payload_with_context_boilerplate(
+		struct_name,
+		wrapper_ident,
+		Some(context_type),
+		&method,
+	)];
+
+	#[rustfmt::skip]
+	let result = quote! {
+	  #(#boilerplates)*
+	};
+
+	result
+}
+
+pub fn get_async_payload_factory_boilerplates(struct_name: &Ident, wrapper_ident: &Ident) -> TokenStream {
+	let method =
+		quote! { <#struct_name as AsyncValidateAndParse<#wrapper_ident>>::async_validate_and_parse(___wrapper).await };
+	let boilerplates = vec![get_async_payload_with_context_boilerplate(
+		struct_name,
+		wrapper_ident,
+		None,
+		&method,
+	)];
+
+	#[rustfmt::skip]
+	let result = quote! {
+	  #(#boilerplates)*
+	};
+
+	result
+}
+
 pub fn get_payload_with_context_boilerplate(
 	struct_name: &Ident,
 	wrapper_ident: &Ident,

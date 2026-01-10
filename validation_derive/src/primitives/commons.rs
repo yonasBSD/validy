@@ -1,5 +1,5 @@
 use syn::{
-	Error, Ident, Result, Token, parenthesized,
+	Error, GenericArgument, Ident, PathArguments, Result, Token, Type, parenthesized,
 	parse::{ParseBuffer, ParseStream},
 };
 
@@ -50,4 +50,16 @@ pub fn parse_attrs<T: ArgParser>(input: &ParseBuffer<'_>) -> Result<T> {
 	}
 
 	Ok(args)
+}
+
+pub fn extract_inner_type(current_type: &Type) -> Option<Type> {
+	if let Type::Path(type_path) = current_type
+		&& let Some(segment) = type_path.path.segments.last()
+		&& let PathArguments::AngleBracketed(args) = &segment.arguments
+		&& let Some(GenericArgument::Type(inner_type)) = args.args.first()
+	{
+		return Some(inner_type.clone());
+	}
+
+	None
 }
