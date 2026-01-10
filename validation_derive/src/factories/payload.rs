@@ -5,6 +5,7 @@ use crate::{
 	factories::{
 		boilerplates::{commons::get_throw_errors_boilerplate, payloads::get_payload_factory_boilerplates},
 		core::AbstractValidationFactory,
+		extensions::payloads::get_payload_extensions,
 		utils::payloads::PayloadsCodeFactory,
 	},
 	fields::FieldAttributes,
@@ -29,13 +30,16 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
 		imports.borrow_mut().add(Import::Deserialize);
-		let imports = imports.borrow().build();
+
 		let struct_name = self.struct_name;
 
 		let mut code_factory = PayloadsCodeFactory(&mut fields);
 		let (wrapper_struct, wrapper_ident) = code_factory.wrapper(struct_name);
+		let extensions = get_payload_extensions(self.struct_name, &wrapper_ident, imports);
+
 		let operations = code_factory.operations();
 		let commit = code_factory.commit();
+		let imports = imports.borrow().build();
 
 		let boilerplates = get_payload_factory_boilerplates(struct_name, &wrapper_ident);
 		let throw_errors = get_throw_errors_boilerplate();
@@ -69,6 +73,8 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
         }
 
         #boilerplates
+
+        #extensions
 			};
 		};
 

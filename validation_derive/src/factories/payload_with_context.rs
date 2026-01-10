@@ -7,6 +7,7 @@ use crate::{
 			commons::get_throw_errors_boilerplate, payloads::get_payload_with_context_factory_boilerplates,
 		},
 		core::AbstractValidationFactory,
+		extensions::payloads::get_payload_with_context_extensions,
 		utils::payloads::PayloadsCodeFactory,
 	},
 	fields::FieldAttributes,
@@ -35,14 +36,18 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
 		imports.borrow_mut().add(Import::Deserialize);
-		let imports = imports.borrow().build();
+
 		let struct_name = self.struct_name;
 		let context_type = self.context_type;
 
 		let mut code_factory = PayloadsCodeFactory(&mut fields);
 		let (wrapper_struct, wrapper_ident) = code_factory.wrapper(struct_name);
+		let extensions =
+			get_payload_with_context_extensions(self.struct_name, &wrapper_ident, self.context_type, imports);
+
 		let operations = code_factory.operations();
 		let commit = code_factory.commit();
+		let imports = imports.borrow().build();
 
 		let boilerplates = get_payload_with_context_factory_boilerplates(struct_name, &wrapper_ident, context_type);
 		let throw_errors = get_throw_errors_boilerplate();
@@ -77,6 +82,8 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
   		  }
 
         #boilerplates
+
+        #extensions
 			};
 		};
 

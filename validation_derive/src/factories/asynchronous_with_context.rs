@@ -7,6 +7,7 @@ use crate::{
 			commons::get_throw_errors_boilerplate, defaults::get_async_default_factory_with_context_boilerplates,
 		},
 		core::AbstractValidationFactory,
+		extensions::defaults::get_async_default_with_context_extensions,
 		utils::defaults::DefaultsCodeFactory,
 	},
 	fields::FieldAttributes,
@@ -34,12 +35,15 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
-		let imports = imports.borrow().build();
+
 		let struct_name = self.struct_name;
 		let context_type = self.context_type;
 
 		let mut code_factory = DefaultsCodeFactory(&mut fields);
+		let extensions = get_async_default_with_context_extensions(self.struct_name, self.context_type, imports);
+
 		let operations = code_factory.operations();
+		let imports = imports.borrow().build();
 
 		let boilerplates = get_async_default_factory_with_context_boilerplates(struct_name, context_type);
 		let throw_errors = get_throw_errors_boilerplate();
@@ -73,6 +77,8 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
    		  }
 
   			#boilerplates
+
+        #extensions
 			};
 		};
 

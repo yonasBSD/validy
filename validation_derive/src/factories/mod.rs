@@ -7,6 +7,7 @@ pub mod asynchronous_with_context;
 pub mod boilerplates;
 pub mod core;
 pub mod default;
+pub mod extensions;
 pub mod modification;
 pub mod modification_with_context;
 pub mod payload;

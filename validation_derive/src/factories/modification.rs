@@ -5,6 +5,7 @@ use crate::{
 	factories::{
 		boilerplates::{commons::get_throw_errors_boilerplate, modifications::get_modification_factory_boilerplates},
 		core::AbstractValidationFactory,
+		extensions::modifications::get_modification_extensions,
 		utils::modifications::ModificationsCodeFactory,
 	},
 	fields::FieldAttributes,
@@ -28,12 +29,15 @@ impl<'a> AbstractValidationFactory for ModificationFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
-		let imports = imports.borrow().build();
+
 		let struct_name = self.struct_name;
 
 		let mut code_factory = ModificationsCodeFactory(&mut fields);
+		let extensions = get_modification_extensions(self.struct_name, imports);
+
 		let operations = code_factory.operations();
 		let commit = code_factory.commit();
+		let imports = imports.borrow().build();
 
 		let boilerplates = get_modification_factory_boilerplates(struct_name);
 		let throw_errors = get_throw_errors_boilerplate();
@@ -58,6 +62,8 @@ impl<'a> AbstractValidationFactory for ModificationFactory<'a> {
   		  }
 
   			#boilerplates
+
+        #extensions
 			};
 		};
 

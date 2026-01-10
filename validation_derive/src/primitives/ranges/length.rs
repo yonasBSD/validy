@@ -64,7 +64,7 @@ pub fn create_length(input: ParseStream, field: &FieldAttributes, imports: &RefC
 	}
 
 	quote! {
-		if let Err(e) = validate_length_fn(&#reference, #range, #field_name, #code, #message) {
+		if let Err(e) = validate_length_fn(&#reference.len(), #range, #field_name, #code, #message) {
 		  errors.push(e);
 	  }
 	}
