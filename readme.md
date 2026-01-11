@@ -97,9 +97,9 @@ pub struct CreateUserExampleDTO {
 #[validate(payload)]
 pub struct Role {
 	#[special(for_each( // You can validate or modify each item of collections.
-    config(from_item = u32, from_collection = Vec<String>, to_collection = Vec<u32>),
-    validate(inline(|_| true)), // Just a validation example.
-    modify(inline(|item| 0)) // Just another parse example.
+	  config(from_item = u32, from_collection = Vec<String>, to_collection = Vec<u32>),
+	  validate(inline(|_| true)), // Just a validation example.
+	  modify(inline(|item| 0)) // Just another parse example.
 	))]
 	pub permissions: Vec<u32>,
 }
@@ -159,7 +159,6 @@ pub struct CreateUserExampleDTO {
   #[validate(length(3..=120, "name must be between 3 and 120 characters"))]
   //----------------^^^^^^^ Rule arg 'range' value
   pub name: String,
-  
   //-------------------------------vvvvvv Rule arg 'code' value
   #[validate(length(3..=12, code = "size", message = "password must be between 3 and 12 characters"))]
   //------------------------^^^^ Rule arg 'code' declaration
