@@ -15,11 +15,11 @@ use crate::{
 	fields::FieldAttributes,
 };
 use proc_macro2::TokenStream;
-use syn::Ident;
+use syn::{Ident, parse::ParseStream};
 
 pub trait AbstractValidationFactory {
 	fn create(&self, fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output;
-	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream;
+	fn create_nested(&self, input: ParseStream, field: &mut FieldAttributes) -> TokenStream;
 }
 
 pub fn get_factory<'a>(

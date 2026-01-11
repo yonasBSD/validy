@@ -27,7 +27,6 @@ impl ImportsSet {
 					Import::ValidationFunction(function) => import_validation_functions(function),
 					Import::ModificationFunction(function) => import_modification_functions(function),
 					Import::ValidationCore => import_validation(),
-					Import::Deserialize => import_serde_deserialize(),
 					Import::AsyncTrait => import_async_trait(),
 				};
 
@@ -44,7 +43,6 @@ pub enum Import {
 	ValidationFunction(&'static str),
 	ModificationFunction(&'static str),
 	ValidationCore,
-	Deserialize,
 	AsyncTrait,
 }
 
@@ -94,18 +92,6 @@ fn import_async_trait() -> TokenStream {
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
 			quote!(#ident::async_trait)
-		}
-	}
-}
-
-fn import_serde_deserialize() -> TokenStream {
-	let found_crate = crate_name("serde").expect("serde is present in `Cargo.toml`");
-
-	match found_crate {
-		FoundCrate::Itself => quote!(crate::async_trait),
-		FoundCrate::Name(name) => {
-			let ident = Ident::new(&name, Span::call_site());
-			quote!(#ident::Deserialize)
 		}
 	}
 }

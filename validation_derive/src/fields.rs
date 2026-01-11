@@ -125,12 +125,12 @@ impl FieldAttributes {
 		false
 	}
 
-	pub fn get_type(&self) -> &Type {
-		&self.final_type
-	}
-
 	pub fn get_current_type(&self) -> &Type {
 		&self.current_type
+	}
+
+	pub fn set_initial_type(&mut self, initial_type: &Type) {
+		self.initial_type = Some(initial_type.clone());
 	}
 
 	pub fn set_current_type(&mut self, current_type: &Type) {
@@ -161,7 +161,7 @@ impl FieldAttributes {
 			None => &self.final_type,
 		};
 
-		if self.as_payload && !self.is_option() {
+		if self.as_payload && (!self.is_option() || self.initial_type.is_some()) {
 			let option_type: Type = parse_quote! {
 				Option<#initial_type>
 			};
@@ -207,7 +207,7 @@ impl FieldAttributes {
 			_ => panic!("needs a field name or index"),
 		};
 
-		quote! { ___wrapper.#suffix }
+		quote! { wrapper.#suffix }
 	}
 
 	pub fn get_original_reference(&self) -> TokenStream {

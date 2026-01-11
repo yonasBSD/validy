@@ -67,7 +67,7 @@ pub fn create_inline_validation(input: ParseStream, field: &FieldAttributes) -> 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
 	quote! {
-	  if (#closure)(&#reference, #(#extra_args),*) {
+	  if !(#closure)(&#reference, #(#extra_args),*) {
 		  errors.push(ValidationError::builder()
 			  .with_field(#field_name)
 			  .as_simple(#code)

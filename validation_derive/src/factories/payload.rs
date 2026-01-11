@@ -10,10 +10,12 @@ use crate::{
 	},
 	fields::FieldAttributes,
 	imports::Import,
+	primitives::specials::nested::get_nested_type,
 };
+use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
-use syn::Ident;
+use quote::quote;
+use syn::{Ident, parse::ParseStream};
 
 pub struct PayloadFactory<'a> {
 	struct_name: &'a Ident,
@@ -29,7 +31,6 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
-		imports.borrow_mut().add(Import::Deserialize);
 
 		let struct_name = self.struct_name;
 
@@ -46,13 +47,13 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 
 		#[rustfmt::skip]
 		let result = quote! {
-		  const _: () = {
+		  #wrapper_struct
+
+			const _: () = {
   		  #imports
 
-  			#wrapper_struct
-
         impl ValidateAndParse<#wrapper_ident> for #struct_name {
-          fn validate_and_parse(___wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
+          fn validate_and_parse(wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
             let mut errors = Vec::<ValidationError>::new();
 
             #(#operations)*
@@ -67,8 +68,8 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 
         impl SpecificValidateAndParse for #struct_name {
           type Wrapper = #wrapper_ident;
-          fn specific_validate_and_parse(___wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
-            <#struct_name as ValidateAndParse<#wrapper_ident>>::validate_and_parse(___wrapper)
+          fn specific_validate_and_parse(wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
+            <#struct_name as ValidateAndParse<#wrapper_ident>>::validate_and_parse(wrapper)
           }
         }
 
@@ -81,22 +82,29 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 		result.into()
 	}
 
-	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {
+	fn create_nested(&self, input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 		let reference = field.get_reference();
 		field.increment_modifications();
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
-		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
+		let (field_type, wrapper_type) = get_nested_type(input);
+
+		if wrapper_type.is_none() {
+			emit_error!(input.span(), "needs the wrapper type");
+		}
 
 		quote! {
-		  let mut #new_reference = #reference.clone();
-		  if let Err(e) = <#field_type as ValidateAndParse<#wrapper_ident>>::validate_and_parse(&#new_reference) {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
-		  }
+			let mut #new_reference = #field_type::default();
+			let result = <#field_type as ValidateAndParse<#wrapper_type>>::validate_and_parse(#reference.clone());
+			match result {
+			  Ok(value) => #new_reference = value,
+				Err(e) =>  {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+			  },
+			}
 		}
 	}
 }

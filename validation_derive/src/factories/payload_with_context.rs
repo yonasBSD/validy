@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use crate::{
 	ImportsSet, Output,
 	factories::{
@@ -12,10 +10,13 @@ use crate::{
 	},
 	fields::FieldAttributes,
 	imports::Import,
+	primitives::specials::nested::get_nested_type,
 };
+use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
-use syn::{Ident, Type};
+use quote::quote;
+use std::cell::RefCell;
+use syn::{Ident, Type, parse::ParseStream};
 
 pub struct PayloadWithContextFactory<'a> {
 	struct_name: &'a Ident,
@@ -35,7 +36,6 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
-		imports.borrow_mut().add(Import::Deserialize);
 
 		let struct_name = self.struct_name;
 		let context_type = self.context_type;
@@ -54,13 +54,13 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 
 		#[rustfmt::skip]
 		let result = quote! {
-		  const _: () = {
+			#wrapper_struct
+
+			const _: () = {
   		  #imports
 
-  			#wrapper_struct
-
   			impl ValidateAndParseWithContext<#wrapper_ident, #context_type> for #struct_name {
-         	fn validate_and_parse_with_context(___wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
+         	fn validate_and_parse_with_context(wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
        			let mut errors = Vec::<ValidationError>::new();
 
             #(#operations)*
@@ -76,8 +76,8 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
         impl SpecificValidateAndParseWithContext for #struct_name {
           type Wrapper = #wrapper_ident;
           type Context = #context_type;
-     			fn specific_validate_and_parse_with_context(___wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
-  					<#struct_name as ValidateAndParseWithContext<#wrapper_ident, #context_type>>::validate_and_parse_with_context(___wrapper, context)
+     			fn specific_validate_and_parse_with_context(wrapper: &#wrapper_ident, context: &#context_type) -> Result<Self, ValidationErrors> {
+  					<#struct_name as ValidateAndParseWithContext<#wrapper_ident, #context_type>>::validate_and_parse_with_context(wrapper, context)
   			  }
   		  }
 
@@ -90,23 +90,30 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 		result.into()
 	}
 
-	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {
+	fn create_nested(&self, input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 		let reference = field.get_reference();
 		field.increment_modifications();
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
-		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
+		let (field_type, wrapper_type) = get_nested_type(input);
 		let context_type = self.context_type;
 
+		if wrapper_type.is_none() {
+			emit_error!(input.span(), "needs the wrapper type");
+		}
+
 		quote! {
-		  let mut #new_reference = #reference.clone();
-		  if let Err(e) = <#field_type as ValidateAndParseWithContext<#wrapper_ident, #context_type>>::validate_and_parse_with_context(&#new_reference, context) {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
-		  }
+			let mut #new_reference = #field_type::default();
+			let result = <#field_type as ValidateAndParseWithContext<#wrapper_type, #context_type>>::validate_and_parse_with_context(#reference.clone(), context);
+			match result {
+			  Ok(value) => #new_reference = value,
+				Err(e) =>  {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+			  },
+			}
 		}
 	}
 }

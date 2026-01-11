@@ -23,7 +23,7 @@ impl Default for AnyArgs {
 		AnyArgs {
 			items: None,
 			code: LitStr::new("any", Span::call_site()),
-			message: LitStr::new("has item outside whitelist", Span::call_site()),
+			message: LitStr::new("has item outside allowlist", Span::call_site()),
 		}
 	}
 }
@@ -60,7 +60,7 @@ pub fn create_any(input: ParseStream, field: &FieldAttributes, imports: &RefCell
 	};
 
 	if items.is_none() {
-		emit_error!(input.span(), "needs a collection of items to use as whitelist");
+		emit_error!(input.span(), "needs a collection of items to use as allowlist");
 		return quote! {};
 	}
 

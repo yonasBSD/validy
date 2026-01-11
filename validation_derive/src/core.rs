@@ -38,7 +38,7 @@ use crate::{
 			suffix::create_suffix, url::create_url,
 		},
 		ranges::{length::create_length, range::create_range},
-		specials::for_each::create_for_each,
+		specials::{for_each::create_for_each, from_type::create_from_type},
 		time::{
 			after_now::create_after_now, before_now::create_before_now, default_time::create_time,
 			naive_time::create_naive_time, now::create_now,
@@ -117,7 +117,7 @@ pub fn get_validation_by_attr_macro(
 	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	match meta {
-		m if m.path.is_ident("required") => create_required(m.input, field),
+		m if m.path.is_ident("required") => create_required(m.input, field, attributes),
 		m if m.path.is_ident("is_some") => create_is_some(m.input, field, imports),
 		m if m.path.is_ident("is_none") => create_is_none(m.input, field, imports),
 		m if m.path.is_ident("inline") => create_inline_validation(m.input, field),
@@ -202,7 +202,8 @@ pub fn get_special_by_attr_macro(
 	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	match meta {
-		m if m.path.is_ident("nested") => factory.create_nested(field),
+		m if m.path.is_ident("nested") => factory.create_nested(m.input, field),
+		m if m.path.is_ident("from_type") => create_from_type(m.input, field, attributes),
 		m if m.path.is_ident("for_each") => create_for_each(factory, m, field, attributes, imports),
 		_ => {
 			emit_error!(meta.input.span(), "unknown value");

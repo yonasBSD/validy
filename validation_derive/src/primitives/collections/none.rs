@@ -23,7 +23,7 @@ impl Default for NoneArgs {
 		NoneArgs {
 			items: None,
 			code: LitStr::new("any", Span::call_site()),
-			message: LitStr::new("has item inside blacklist", Span::call_site()),
+			message: LitStr::new("has item inside blocklist", Span::call_site()),
 		}
 	}
 }
@@ -60,7 +60,7 @@ pub fn create_none(input: ParseStream, field: &FieldAttributes, imports: &RefCel
 	};
 
 	if items.is_none() {
-		emit_error!(input.span(), "needs a collection of items to use as blacklist");
+		emit_error!(input.span(), "needs a collection of items to use as blocklist");
 		return quote! {};
 	}
 

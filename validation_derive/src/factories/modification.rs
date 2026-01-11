@@ -10,10 +10,11 @@ use crate::{
 	},
 	fields::FieldAttributes,
 	imports::Import,
+	primitives::specials::nested::get_nested_type,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Ident;
+use syn::{Ident, parse::ParseStream};
 
 pub struct ModificationFactory<'a> {
 	struct_name: &'a Ident,
@@ -70,12 +71,12 @@ impl<'a> AbstractValidationFactory for ModificationFactory<'a> {
 		result.into()
 	}
 
-	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {
+	fn create_nested(&self, input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 		let reference = field.get_reference();
 		field.increment_modifications();
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
-		let field_type = field.get_type();
+		let (field_type, _) = get_nested_type(input);
 
 		quote! {
 		  let mut #new_reference = #reference.clone();

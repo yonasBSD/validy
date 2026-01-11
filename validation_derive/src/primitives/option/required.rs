@@ -4,6 +4,7 @@ use quote::quote;
 use syn::{Error, LitStr, Result, parse::ParseStream};
 
 use crate::{
+	attributes::ValidationAttributes,
 	fields::FieldAttributes,
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
@@ -36,7 +37,16 @@ impl ArgParser for RequiredArgs {
 	}
 }
 
-pub fn create_required(input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
+pub fn create_required(
+	input: ParseStream,
+	field: &mut FieldAttributes,
+	attributes: &ValidationAttributes,
+) -> TokenStream {
+	if !attributes.payload {
+		emit_error!(input.span(), "requires payload attribute");
+		return quote! {};
+	}
+
 	let content = remove_parens(input);
 
 	let required_args = match content {

@@ -10,10 +10,12 @@ use crate::{
 	},
 	fields::FieldAttributes,
 	imports::Import,
+	primitives::specials::nested::get_nested_type,
 };
+use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
-use syn::Ident;
+use quote::quote;
+use syn::{Ident, parse::ParseStream};
 
 pub struct AsyncPayloadFactory<'a> {
 	struct_name: &'a Ident,
@@ -29,7 +31,6 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 	fn create(&self, mut fields: Vec<FieldAttributes>, imports: &RefCell<ImportsSet>) -> Output {
 		imports.borrow_mut().add(Import::ValidationCore);
 		imports.borrow_mut().add(Import::AsyncTrait);
-		imports.borrow_mut().add(Import::Deserialize);
 
 		let struct_name = self.struct_name;
 
@@ -46,14 +47,14 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 
 		#[rustfmt::skip]
 		let result = quote! {
+			#wrapper_struct
+
 		  const _: () = {
 				#imports
 
-  			#wrapper_struct
-
   			#[async_trait]
   			impl AsyncValidateAndParse<#wrapper_ident> for #struct_name {
-         	async fn async_validate_and_parse(___wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
+         	async fn async_validate_and_parse(wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
        			let mut errors = Vec::<ValidationError>::new();
 
             #(#operations)*
@@ -69,8 +70,8 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
    			#[async_trait]
    			impl SpecificAsyncValidateAndParse for #struct_name {
           type Wrapper = #wrapper_ident;
-         	async fn specific_async_validate_and_parse(___wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
-       			<#struct_name as AsyncValidateAndParse<#wrapper_ident>>::async_validate_and_parse(___wrapper).await
+         	async fn specific_async_validate_and_parse(wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
+       			<#struct_name as AsyncValidateAndParse<#wrapper_ident>>::async_validate_and_parse(wrapper).await
     		  }
    	    }
 
@@ -83,22 +84,29 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 		result.into()
 	}
 
-	fn create_nested(&self, field: &mut FieldAttributes) -> TokenStream {
+	fn create_nested(&self, input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 		let reference = field.get_reference();
 		field.increment_modifications();
 		let new_reference = field.get_reference();
 		let field_name = field.get_name();
-		let field_type = field.get_type();
-		let wrapper_ident = format_ident!("{}Wrapper", self.struct_name);
+		let (field_type, wrapper_type) = get_nested_type(input);
+
+		if wrapper_type.is_none() {
+			emit_error!(input.span(), "needs the wrapper type");
+		}
 
 		quote! {
-		  let mut #new_reference = #reference.clone();
-		  if let Err(e) = <#field_type as AsyncValidateAndParse<#wrapper_ident>>::async_validate_and_parse(&#new_reference, context).await {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
-		  }
+		  let mut #new_reference = #field_type::default();
+			let result = <#field_type as AsyncValidateAndParse<#wrapper_type>>::async_validate_and_parse(#reference.clone(), context).await;
+			match result {
+			  Ok(value) => #new_reference = value,
+				Err(e) =>  {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+			  },
+			}
 		}
 	}
 }
