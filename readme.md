@@ -43,7 +43,7 @@ The main entry point is the `#[derive(Validate)]` macro. It allows you to config
 ```rust
 use crate::core::{errors::Error, services::user::UserService};
 //-------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^ Well, it's my validation context.
-//You will use your own when need pass a context.
+// You will use your own when need pass a context.
 use serde::Deserialize;
 use std::sync::Arc;
 use validation::core::{Validate, ValidationError};
@@ -58,48 +58,48 @@ pub struct CreateUserExampleDTO {
 	#[modify(trim)]
 	#[validate(email("invalid email format", "bad_format"))]
 	#[validate(async_custom_with_context(validate_unique_email))]
-	//You can pass extra args.
+	// You can pass extra args.
 	//#[validate(async_custom_with_context(validate_unique_email, [&wrapper.name]))]
-	//If payload is false, you should replace 'wrapper' by 'self'.
-	//Technically you can also access variables within the implementation, but I don't recommend it. 
+	// If payload is false, you should replace 'wrapper' by 'self'.
+	// Technically you can also access variables within the implementation, but I don't recommend it. 
 	#[validate(inline(|_| true))] //Just an example.
 	#[validate(length(0..=254, "email must not be more than 254 characters"))]
 	pub email: String,
 	
-	//Rule's args order can be changed using the '=' operator.
+	// Rule's args order can be changed using the '=' operator.
 	#[validate(length(3..=12, code = "size", message = "password must be between 3 and 12 characters"))]
-	//However, args order is still the priority.
+	// However, args order is still the priority.
 	//#[validate(length(3..=12, "size", message = "password must be between 3 and 12 characters"))]
-	//Above, "size" is a message (which has been overridden, by the way).
+	// Above, "size" is a message (which has been overridden, by the way).
 	pub password: String,
 
-	#[special(from_type(String))] //Id will be deserialized as Option<String>.
-	#[modify(lowercase)] //You can modify or validade as String, is has some.
-	#[modify(inline(|_| 0))] //You can parse to the final value type.
-	#[validate(range(3..=12))] //And validade or modify again.
+	#[special(from_type(String))] // Id will be deserialized as Option<String>.
+	#[modify(lowercase)] // You can modify or validade as String, is has some.
+	#[modify(inline(|_| 0))] // You can parse to the final value type.
+	#[validate(range(3..=12))] // And validade or modify again.
 	pub dependent_id: u16,
 
 	#[modify(trim)]
 	#[validate(length(0..=254, "tag must not be more than 254 characters"))]
 	#[modify(snake_case)]
-	pub tag: Option<String>, //Tag is really optional.
+	pub tag: Option<String>, // Tag is really optional.
 	
-	#[special(from_type(RoleWrapper))] //Required to correctly define the wrapper field type.
-	#[special(nested(Role, RoleWrapper))] //Required to correctly validate nested content.
-	//The wrapper type and the rule `from_type` can be ignored when `payload` is disabled.
+	#[special(from_type(RoleWrapper))] // Required to correctly define the wrapper field type.
+	#[special(nested(Role, RoleWrapper))] // Required to correctly validate nested content.
+	// The wrapper type and the rule `from_type` can be ignored when `payload` is disabled.
 	//#[special(nested(Role))]
 	pub role: Option<Role>, //Can be optional, or not.
 	//pub role: Role,
 }
 
-//To pass a struct to nested validations, the struct needs `Default` derive.
+// To pass a struct to nested validations, the struct needs `Default` derive.
 #[derive(Debug, Deserialize, Default, Validate)]
 #[validate(payload)]
 pub struct Role {
-	#[special(for_each( //You can validate or modify each item of collections.
+	#[special(for_each( // You can validate or modify each item of collections.
 	  config(from_item = u32, from_collection = Vec<String>, to_collection = Vec<u32>),
-		validate(inline(|_| true)) //Just a validation example.
-		modify(inline(|item| 0)) //Just another parse example.
+		validate(inline(|_| true)), // Just a validation example.
+		modify(inline(|item| 0)) // Just another parse example.
 	))]
 	pub permissions: Vec<u32>,
 }
@@ -112,14 +112,14 @@ fn modify_tag(tag: &str, field_name: &str) -> (String, Option<ValidationError>) 
 	("new_tag".to_string(), None)
 }
 
-//Custom functions can be async, instead sync.
-//With context, or not. See `custom` and `custom_with_context`, `async_custom`,
-//`async_custom_with_context` and `inline` rules.
+// Custom functions can be async, instead sync.
+// With context, or not. See `custom` and `custom_with_context`, `async_custom`,
+// `async_custom_with_context` and `inline` rules.
 async fn validate_unique_email(
 	email: &str,
 	field_name: &str,
-	service: &Arc<dyn UserService>, //Only if has context.
-	//name: &str                    //Example with extra args.
+	service: &Arc<dyn UserService>, // Only if has context.
+	//name: &str                    // Example with extra args.
 ) -> Result<(), ValidationError> {
 	let result = service.email_exists(email).await;
 
@@ -156,7 +156,7 @@ pub struct CreateUserExampleDTO {
   //vvvvvv Rule group
   #[modify(trim, lowercase)]
   //-------^^^^ Rule
-	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
+  #[validate(length(3..=120, "name must be between 3 and 120 characters"))]
 	//----------------^^^^^^^ Rule arg 'range' value
 	pub name: String,
 	
@@ -193,8 +193,8 @@ See an example:
 #[debug_handler]
 pub async fn create_user(
 	State(service): State<Arc<dyn UserService>>,
-	body: CreateUserDTO, //You can deconstruct too.
-	//CreateUserDTO { name, email, password }: CreateUserDTO,
+	body: CreateUserDTO, // You can deconstruct too.
+	// CreateUserDTO { name, email, password }: CreateUserDTO,
 ) -> Result<impl IntoResponse, Error> {
 	let user = service.create(body.name, body.email, body.password).await?;
 	Ok((StatusCode::CREATED, Json(UserDTO::from(user))))
