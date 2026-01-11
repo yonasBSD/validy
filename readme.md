@@ -209,16 +209,16 @@ Crate behavior can be adjusted in Cargo.toml.
 
 | **Feature** | **Description** | **Dependencies** |
 | :-------- | :------- | :------- |
-| default | `derive`, `validation`, `modification` | | 
-| all | Enables all features. | |
-| derive | Enables macro functionality. | `serde` |
-| validation | Enables validation functions. Needed by almost all `derive` primitives validation rules. | |
-| modification | Enables modification functions. Needed by almost all `derive` primitives modification rules. | `heck` |
-| email | Enables `email` validation rule. | `email_address` |
-| pattern | Enables `pattern` and `url` validation rules. Uses `moka` to cache `regex`. Cache can be configured calling `ValidationSettings::init(...)`. | `moka`, `regex` | 
-| ip | Enables `ip` validation rule. | |
-| time | Enables time validation rules. | `chrono` |
-| axum | `derive` \| Enables axum integration. | `axum` |
+| `default` | `derive`, `validation`, `modification` | | 
+| `all` | Enables all features. | |
+| `derive` | Enables macro functionality. | `serde` |
+| `validation` | Enables validation functions. Needed by almost all `derive` primitives validation rules. | |
+| `modification` | Enables modification functions. Needed by almost all `derive` primitives modification rules. | `heck` |
+| `email` | Enables `email` validation rule. | `email_address` |
+| `pattern` | Enables `pattern` and `url` validation rules. Uses `moka` to cache `regex`. Cache can be configured calling `ValidationSettings::init(...)`. | `moka`, `regex` | 
+| `ip` | Enables `ip` validation rule. | |
+| `time` | Enables time validation rules. | `chrono` |
+| `axum` | `derive` \| Enables axum integration. | `axum` |
 
 ## 🚧 Validation Rules
 
@@ -230,48 +230,48 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| required(message = <?string>, code = <?string>) | Changes the default message and code displayed when a field is missing. Requires that `payload` configuration attribute is enabled. |
-| is_some(message = <?string>, code = <?string>) | Validates that an `Option` is `Some`. |
-| is_none(message = <?string>, code = <?string>) | Validates that an `Option` is `None`. |
+| `required`(message = <?string>, code = <?string>) | Changes the default message and code displayed when a field is missing. Requires that `payload` configuration attribute is enabled. |
+| `is_some`(message = <?string>, code = <?string>) | Validates that an `Option` is `Some`. |
+| `is_none`(message = <?string>, code = <?string>) | Validates that an `Option` is `None`. |
 
 ### For `string` fields
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| contains(slice = \<string>, message = <?string>, code = <?string>) | Validates that the string contains the specified substring. |
-| email(message = <?string>, code = <?string>) | Validates that the string follows a standard email format. |
-| url(message = <?string>, code = <?string>) | Validates that the string is a standard URL. |
-| ip(message = <?string>, code = <?string>) | Validates that the string is a valid IP address (v4 or v6). |
-| ipv4(message = <?string>, code = <?string>) | Validates that the string is a valid IPv4 address. |
-| ipv6(message = <?string>, code = <?string>) | Validates that the string is a valid IPv6 address. |
-| pattern(pattern = \<regex>, message = <?string>, code = <?string>) | Validates that the string matches the provided Regex  pattern. |
-| suffix(suffix = \<string>, message = <?string>, code = <?string>) | Validates that the string ends with the specified suffix. |
-| prefix(prefix = \<string>, message = <?string>, code = <?string>) | Validates that the string starts with the specified prefix. |
-| length(range = \<range>, message = <?string>, code = <?string>) | Validates that the length (string or collection) is within  limits. |
+| `contains`(slice = \<string>, message = <?string>, code = <?string>) | Validates that the string contains the specified substring. |
+| `email`(message = <?string>, code = <?string>) | Validates that the string follows a standard email format. |
+| `url`(message = <?string>, code = <?string>) | Validates that the string is a standard URL. |
+| `ip`(message = <?string>, code = <?string>) | Validates that the string is a valid IP address (v4 or v6). |
+| `ipv4`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv4 address. |
+| `ipv6`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv6 address. |
+| `pattern`(pattern = \<regex>, message = <?string>, code = <?string>) | Validates that the string matches the provided Regex  pattern. |
+| `suffix`(suffix = \<string>, message = <?string>, code = <?string>) | Validates that the string ends with the specified suffix. |
+| `prefix`(prefix = \<string>, message = <?string>, code = <?string>) | Validates that the string starts with the specified prefix. |
+| `length`(range = \<range>, message = <?string>, code = <?string>) | Validates that the length (string or collection) is within  limits. |
 
 ### For `collection` fields
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| length(range = \<range>, message = <?string>, code = <?string>) | Validates that the length (string or collection) is within  limits. |
-| any(items = \<array>, message = <?string>, code = <?string>) | Validates that the value is present in the allowed list  (allowlist). |
-| none(items = \<array>, message = <?string>, code = <?string>) | Validates that the value is NOT present in the forbidden list  (blocklist). |
+| `length`(range = \<range>, message = <?string>, code = <?string>) | Validates that the length (string or collection) is within  limits. |
+| `any`(items = \<array>, message = <?string>, code = <?string>) | Validates that the value is present in the allowed list  (allowlist). |
+| `none`(items = \<array>, message = <?string>, code = <?string>) | Validates that the value is NOT present in the forbidden list  (blocklist). |
 
 ### For `numbers` fields
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| range(range = \<range>, message = <?string>, code = <?string>) | Validates that the number falls within the specified numeric  range. |
+| `range`(range = \<range>, message = <?string>, code = <?string>) | Validates that the number falls within the specified numeric  range. |
 
 ### For `date` or `time` fields
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| time(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified time/date  format. Not parse the string. |
-| naive_time(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified naive  time format. Not parse the string. |
-| after_now(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly after the  current time. |
-| before_now(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly before  the current time. |
-| now(ms_tolerance = <?int>, message = <?string>, code = <?string>) | Validates that the date/time matches the current time  within a tolerance (default: 500ms). |
+| `time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified time/date  format. Not parse the string. |
+| `naive_time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified naive  time format. Not parse the string. |
+| `after_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly after the  current time. |
+| `before_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly before  the current time. |
+| `now`(ms_tolerance = <?int>, message = <?string>, code = <?string>) | Validates that the date/time matches the current time  within a tolerance (default: 500ms). |
 
 ### Custom rules
 
@@ -279,11 +279,11 @@ All with prefix `async_` requires that `asynchronous` configuration attribute is
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| inline(closure = \<closure>, params = <?array>, message = <?string>, code = <?string>) | Validates using a simple inline  closure returning a boolean. |
-| custom(function = \<function>, params = <?array>) | Validates using a custom function. |
-| custom_with_context(function = \<function>, params = <?array>) | Validates using a custom function with access to the context. |
-| async_custom(function = \<function>, params = <?array>) | Validates using a custom async function. |
-| async_custom_with_context(function = \<function>, params = <?array>) | Validates using a custom async function with access to  the context. |
+| `inline`(closure = \<closure>, params = <?array>, message = <?string>, code = <?string>) | Validates using a simple inline  closure returning a boolean. |
+| `custom`(function = \<function>, params = <?array>) | Validates using a custom function. |
+| `custom_with_context`(function = \<function>, params = <?array>) | Validates using a custom function with access to the context. |
+| `async_custom`(function = \<function>, params = <?array>) | Validates using a custom async function. |
+| `async_custom_with_context`(function = \<function>, params = <?array>) | Validates using a custom async function with access to  the context. |
 
 ## 🔨 Modification Rules
 
@@ -295,19 +295,19 @@ Primitive rules of `#[modify(<rule>, ...)]` rule group. All requires that `paylo
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| trim | Removes whitespace from both ends of the string. |
-| trim_start | Removes whitespace from the start of the string. |
-| trim_end | Removes whitespace from the end of the string. |
-| uppercase | Converts all characters in the string to uppercase. |
-| lowercase | Converts all characters in the string to lowercase. |
-| capitalize | Capitalizes the first character of the string. |
-| camel_case | Converts the string to CamelCase (PascalCase). |
-| lower_camel_case | Converts the string to lowerCamelCase. |
-| snake_case | Converts the string to snake_case. |
-| shouty_snake_case | Converts the string to SHOUTY_SNAKE_CASE. |
-| kebab_case | Converts the string to kebab-case. |
-| shouty_kebab_case | Converts the string to SHOUTY-KEBAB-CASE. |
-| train_case | Converts the string to Train-Case. |
+| `trim` | Removes whitespace from both ends of the string. |
+| `trim_start` | Removes whitespace from the start of the string. |
+| `trim_end` | Removes whitespace from the end of the string. |
+| `uppercase` | Converts all characters in the string to uppercase. |
+| `lowercase` | Converts all characters in the string to lowercase. |
+| `capitalize` | Capitalizes the first character of the string. |
+| `camel_case` | Converts the string to CamelCase (PascalCase). |
+| `lower_camel_case` | Converts the string to lowerCamelCase. |
+| `snake_case` | Converts the string to snake_case. |
+| `shouty_snake_case` | Converts the string to SHOUTY_SNAKE_CASE. |
+| `kebab_case` | Converts the string to kebab-case. |
+| `shouty_kebab_case` | Converts the string to SHOUTY-KEBAB-CASE. |
+| `train_case` | Converts the string to Train-Case. |
 
 ### Custom rules
 
@@ -315,11 +315,11 @@ All with prefix `async_` requires that `asynchronous` configuration attribute is
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| inline(closure = \<closure>, params = <?array>) | Modifies the value using an inline closure. |
-| custom(function = \<function>, params = <?array>) | Modifies the value in-place using a custom function. |
-| custom_with_context(function = \<function>, params = <?array>) | Modifies the value in-place using a custom function with  context access. |
-| async_custom(function = \<function>, params = <?array>) | Modifies the value in-place using a custom async function. |
-| async_custom_with_context(function = \<function>, params = <?array>) | Modifies the value in-place using a custom async  function with context access. |
+| `inline`(closure = \<closure>, params = <?array>) | Modifies the value using an inline closure. |
+| `custom`(function = \<function>, params = <?array>) | Modifies the value in-place using a custom function. |
+| `custom_with_context`(function = \<function>, params = <?array>) | Modifies the value in-place using a custom function with  context access. |
+| `async_custom`(function = \<function>, params = <?array>) | Modifies the value in-place using a custom async function. |
+| `async_custom_with_context`(function = \<function>, params = <?array>) | Modifies the value in-place using a custom async  function with context access. |
 
 ## 🔧 Special Rules
 
@@ -329,6 +329,6 @@ Primitive rules of `#[special(<rule>, ...)]` rule group.
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| nested(value = <type>, wrapper = <?type>) | Validates the fields of a nested struct. Warning: cyclical references can cause many problems. |
-| for_each(config?(from_item = <?type>, to_collection = <?type>, from_collection = <?type>), \<rule>) | Applies validation rules  to every element in a collection. The arg `from_item` from optional `config` rule defines the type of each item of the collection. The arg `to_collection` defines the final type of the collection and the arg `from_collection` defines de initial type of the collection. Just `from_type` adapters to collections. |
-| from_type(value = <?type>) | Need to be defined above and first all others rules. |
+| `nested`(value = <type>, wrapper = <?type>) | Validates the fields of a nested struct. Warning: cyclical references can cause many problems. |
+| `for_each`(config?(from_item = <?type>, to_collection = <?type>, from_collection = <?type>), \<rule>) | Applies validation rules  to every element in a collection. The arg `from_item` from optional `config` rule defines the type of each item of the collection. The arg `to_collection` defines the final type of the collection and the arg `from_collection` defines de initial type of the collection. Just `from_type` adapters to collections. |
+| `from_type`(value = <?type>) | Need to be defined above and first all others rules. |
