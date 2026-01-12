@@ -10,7 +10,7 @@ A powerful and flexible Rust library based on procedural macros for `validation`
 - [🔌 Axum Integration](#-axum-integration)
 - [🚩 Feature Flags](#-feature-flags)
 - [🚧 Validation Rules](#-validation-rules)
-  - [For `optional` fields](#for-optional-fields)
+  - [For `required` fields](#for-required-fields)
   - [For `string` fields](#for-string-fields)
   - [For `collection` fields](#for-collection-fields)
   - [For `numbers` fields](#for-numbers-fields)
@@ -53,6 +53,7 @@ use validation::core::{Validate, ValidationError};
 pub struct CreateUserExampleDTO {
 	#[modify(trim)]
 	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
+	#[validate(required("name is required"))] // Just change required message
 	pub name: String,
 
 	#[modify(trim)]
@@ -225,13 +226,11 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 
 > The '?' indicates that arg is optional.
 
-### For `optional` fields
+### For `required` fields
 
 | **Rule** | **Description** |
 | :-------- | :------- |
 | `required`(message = <?string>, code = <?string>) | Changes the default message and code displayed when a field is missing. Requires that `payload` configuration attribute is enabled. |
-| `is_some`(message = <?string>, code = <?string>) | Validates that an `Option` is `Some`. |
-| `is_none`(message = <?string>, code = <?string>) | Validates that an `Option` is `None`. |
 
 ### For `string` fields
 
@@ -239,7 +238,7 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 | :-------- | :------- |
 | `contains`(slice = \<string>, message = <?string>, code = <?string>) | Validates that the string contains the specified substring. |
 | `email`(message = <?string>, code = <?string>) | Validates that the string follows a standard email format. |
-| `url`(message = <?string>, code = <?string>) | Validates that the string is a standard URL. |
+| `url`(message = <?string>, code = <?string>) | Validates that the string is a standard URL. Find good URL regex patterns is so hard and tedious. I decided use this pattern `(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)` related [here](https://stackoverflow.com/a/3809435) |
 | `ip`(message = <?string>, code = <?string>) | Validates that the string is a valid IP address (v4 or v6). |
 | `ipv4`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv4 address. |
 | `ipv6`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv6 address. |
