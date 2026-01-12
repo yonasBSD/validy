@@ -32,7 +32,7 @@ use crate::{
 		},
 		inlines::{inline_modification::create_inline_modification, inline_validation::create_inline_validation},
 		ips::{ip::create_ip, ipv4::create_ipv4, ipv6::create_ipv6},
-		option::{is_none::create_is_none, is_some::create_is_some, required::create_required},
+		option::required::create_required,
 		patterns::{
 			contains::create_contains, email::create_email, pattern::create_pattern, prefix::create_prefix,
 			suffix::create_suffix, url::create_url,
@@ -118,8 +118,6 @@ pub fn get_validation_by_attr_macro(
 ) -> TokenStream {
 	match meta {
 		m if m.path.is_ident("required") => create_required(m.input, field, attributes),
-		m if m.path.is_ident("is_some") => create_is_some(m.input, field, imports),
-		m if m.path.is_ident("is_none") => create_is_none(m.input, field, imports),
 		m if m.path.is_ident("inline") => create_inline_validation(m.input, field),
 		m if m.path.is_ident("custom") => create_custom(m.input, field),
 		m if m.path.is_ident("custom_with_context") => create_custom_with_context(m.input, field, attributes),

@@ -8,11 +8,11 @@ pub fn validate_url(
 	message: impl Into<Cow<'static, str>>,
 ) -> Result<(), ValidationError> {
 	match RegexManager::get_or_create(
-		r"[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)",
+		r"(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)",
 	) {
 		Err(_) => Err(ValidationError::builder()
 			.with_field(field)
-			.as_simple("bad-regex")
+			.as_simple("bad_regex")
 			.with_message("can't build regex by provided pattern")
 			.build()
 			.into()),

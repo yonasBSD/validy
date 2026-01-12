@@ -1,4 +1,6 @@
-use crate::core::{NestedValidationError, SimpleValidationError, ValidationError, ValidationErrors};
+use crate::core::{
+	IntoValidationError, NestedValidationError, SimpleValidationError, ValidationError, ValidationErrors,
+};
 use std::{borrow::Cow, collections::HashMap};
 
 impl NestedValidationError {
@@ -56,5 +58,25 @@ impl From<NestedValidationError> for ValidationError {
 impl From<SimpleValidationError> for ValidationError {
 	fn from(value: SimpleValidationError) -> Self {
 		ValidationError::Leaf(value)
+	}
+}
+
+impl IntoValidationError for &str {
+	fn into_error(self, field: Cow<'static, str>, code: Cow<'static, str>) -> ValidationError {
+		ValidationError::Leaf(SimpleValidationError {
+			field,
+			code,
+			message: Some(self.to_string().into()),
+		})
+	}
+}
+
+impl IntoValidationError for ValidationErrors {
+	fn into_error(self, field: Cow<'static, str>, code: Cow<'static, str>) -> ValidationError {
+		ValidationError::Node(NestedValidationError {
+			field,
+			code,
+			errors: self,
+		})
 	}
 }

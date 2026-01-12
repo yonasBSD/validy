@@ -9,7 +9,7 @@ pub use validation_derive::*;
 pub type ModificationResult<T> = (T, Option<ValidationError>);
 pub type ValidationErrors = HashMap<Cow<'static, str>, ValidationError>;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum ValidationError {
 	Node(NestedValidationError),
@@ -22,7 +22,7 @@ impl ValidationError {
 	}
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub struct NestedValidationError {
 	#[serde(skip_serializing)]
 	pub field: Cow<'static, str>,
@@ -30,7 +30,7 @@ pub struct NestedValidationError {
 	pub errors: ValidationErrors,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub struct SimpleValidationError {
 	#[serde(skip_serializing)]
 	pub field: Cow<'static, str>,
@@ -148,4 +148,8 @@ pub trait SpecificAsyncValidateAndParseWithContext: Sized + Send + Sync {
 		wrapper: &Self::Wrapper,
 		context: &Self::Context,
 	) -> Result<Self, ValidationErrors>;
+}
+
+pub trait IntoValidationError {
+	fn into_error(self, field: Cow<'static, str>, code: Cow<'static, str>) -> ValidationError;
 }

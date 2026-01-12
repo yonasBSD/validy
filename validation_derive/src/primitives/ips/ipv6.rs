@@ -20,8 +20,8 @@ pub struct Ipv6Args {
 impl Default for Ipv6Args {
 	fn default() -> Self {
 		Ipv6Args {
-			code: LitStr::new("ipv4", Span::call_site()),
-			message: LitStr::new("invalid ipv4 format", Span::call_site()),
+			code: LitStr::new("ipv6", Span::call_site()),
+			message: LitStr::new("invalid ipv6 format", Span::call_site()),
 		}
 	}
 }

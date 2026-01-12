@@ -3,5 +3,5 @@
 set -e
 mkdir -p temp
 
-cargo expand --lib --tests --all-features tests::derive >> temp/output.rs
-cargo check --lib --tests --all-features
+cargo expand --all-features --test mod validation::options >> temp/output.rs
+cargo check --all-features --test mod

@@ -238,7 +238,7 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 | :-------- | :------- |
 | `contains`(slice = \<string>, message = <?string>, code = <?string>) | Validates that the string contains the specified substring. |
 | `email`(message = <?string>, code = <?string>) | Validates that the string follows a standard email format. |
-| `url`(message = <?string>, code = <?string>) | Validates that the string is a standard URL. Find good URL regex patterns is so hard and tedious. I decided use this pattern `(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)` related [here](https://stackoverflow.com/a/3809435) |
+| `url`(message = <?string>, code = <?string>) | Validates that the string is a standard URL. Finding goods regex patterns for URLs is so difficult and tedious. I decided to use the pattern `(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)` related [here](https://stackoverflow.com/a/3809435). |
 | `ip`(message = <?string>, code = <?string>) | Validates that the string is a valid IP address (v4 or v6). |
 | `ipv4`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv4 address. |
 | `ipv6`(message = <?string>, code = <?string>) | Validates that the string is a valid IPv6 address. |

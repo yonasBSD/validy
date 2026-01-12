@@ -53,23 +53,24 @@ impl FieldAttributes {
 	}
 
 	pub fn get_operations(&mut self) -> TokenStream {
+		let name = match (&self.name, &self.index) {
+			(Some(name), _) => name.to_string(),
+			(_, Some(index)) => index.index.to_string(),
+			_ => panic!("needs a field name or index"),
+		};
+
+		let unwrapped_final_name = format!("unwrapped_{}", name);
+		let unwrapped = Ident::new(&unwrapped_final_name, Span::call_site());
+
 		if self.as_payload {
 			let field_name = &self.get_name();
 			let wrapper_final_type = &self.get_wrapper_final_type();
 			let reference = &self.get_reference();
 			self.increment_modifications();
+			let operations = &self.operations;
 			let new_reference = &self.get_reference();
 			let wrapper_reference = &self.get_wrapper_reference();
-			let operations = &self.operations;
 
-			let name = match (&self.name, &self.index) {
-				(Some(name), _) => name.to_string(),
-				(_, Some(index)) => index.index.to_string(),
-				_ => panic!("needs a field name or index"),
-			};
-
-			let unwrapped_final_name = format!("unwrapped_{}", name);
-			let unwrapped = Ident::new(&unwrapped_final_name, Span::call_site());
 			let update: TokenStream = if self.modifications == 1 {
 				quote! { #new_reference = Some(#reference.clone()); }
 			} else {
@@ -101,6 +102,14 @@ impl FieldAttributes {
 								.build()
 								.into());
 					}
+				}
+			}
+		} else if self.is_option() {
+			let operations = &self.operations;
+			let reference = self.get_original_reference();
+			quote! {
+				if let Some(#unwrapped) = #reference.as_ref() {
+					#(#operations)*
 				}
 			}
 		} else {
@@ -227,7 +236,7 @@ impl FieldAttributes {
 			_ => panic!("needs a field name or index"),
 		};
 
-		match (self.as_payload, self.scopes, self.modifications) {
+		match (self.as_payload || self.is_option(), self.scopes, self.modifications) {
 			(false, 0, 0) => quote! { self.#suffix },
 			(true, 0, 0) => {
 				let name = match (&self.name, &self.index) {

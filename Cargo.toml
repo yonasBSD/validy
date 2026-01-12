@@ -15,8 +15,9 @@ chrono = { version = "0.4.42", optional = true }
 axum = { version = "0.8.8", optional = true }
 
 [features]
-all = ["derive", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
-default = ["derive", "validation", "modification"]
+all = ["derive", "macro_rules", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
+default = ["derive", "macro_rules", "validation", "modification"]
+macro_rules = []
 derive = ["dep:validation_derive", "dep:serde"]
 validation = []
 modification = ["dep:heck"]
@@ -25,3 +26,6 @@ pattern = ["dep:moka", "dep:regex"]
 ip = []
 time = ["dep:chrono"]
 axum = ["dep:axum", "derive", "validation_derive/axum"]
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"

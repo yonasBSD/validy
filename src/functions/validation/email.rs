@@ -19,36 +19,3 @@ pub fn validate_email(
 
 	Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn should_pass_valid_emails() {
-		let emails = [
-			("teste@gmail.com", true),
-			("teste-hifen@gmail.com", true),
-			("teste_sub@gmail.com", true),
-			("teste@dominio-hifen.com", true),
-			("teste..teste@gmail.com", false),
-			("teste@gmail..com", false),
-			(".teste@gmail.com", false),
-			("teste.@gmail.com", false),
-			("teste@.gmail.com", false),
-			("teste@gmail.com.", false),
-			("teste@-gmail.com", false),
-			("teste@gmail-.com", false),
-		];
-
-		for (email, is_valid) in emails.iter() {
-			let result = validate_email(email, "", "", "");
-
-			if *is_valid {
-				assert!(result.is_ok(), "{} {:?} for {}", is_valid, result, email);
-			} else {
-				assert!(result.is_err(), "{} {:?} for {}", is_valid, result, email);
-			}
-		}
-	}
-}

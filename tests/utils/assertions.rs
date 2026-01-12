@@ -1,0 +1,83 @@
+use pretty_assertions::assert_eq;
+use std::fmt::Debug;
+use validation::core::ValidationErrors;
+
+#[macro_export]
+macro_rules! assert_errors {
+	($result:expr, $object:expr, $( $errors:tt )*) => {
+	  let expected = ::validation::validation_errors! $( $errors )*;
+		$crate::utils::assertions::assert_validation_errors(
+			&$result,
+			&$object,
+			&expected
+		);
+	};
+}
+
+#[macro_export]
+macro_rules! assert_parsed {
+	($result:expr, $object:expr, $expected:expr) => {
+		$crate::utils::assertions::assert_parsed_validation(&$result, &$object, &$expected);
+	};
+}
+
+#[macro_export]
+macro_rules! assert_modification {
+	($result:expr, $object:expr, $expected:expr) => {
+		$crate::utils::assertions::assert_modification(&$result, &$object, &$expected);
+	};
+}
+
+#[macro_export]
+macro_rules! assert_validation {
+	($result:expr, $object:expr) => {
+		$crate::utils::assertions::assert_validation(&$result, &$object);
+	};
+}
+
+pub fn assert_validation_errors<T: Debug, O: Debug>(
+	result: &Result<T, ValidationErrors>,
+	object: &O,
+	expected: &ValidationErrors,
+) {
+	match result {
+		Ok(value) => panic!(
+			"Expected Err({:#?}), received Ok({:#?}) from {:#?} validation.",
+			expected, value, object
+		),
+		Err(value) => assert_eq!(value, expected, "Result did not match expectations."),
+	}
+}
+
+pub fn assert_parsed_validation<T: Debug + PartialEq, O: Debug>(
+	result: &Result<T, ValidationErrors>,
+	object: &O,
+	expected: &T,
+) {
+	match result {
+		Ok(value) => assert_eq!(value, expected, "Result did not match expectations."),
+		Err(value) => panic!(
+			"Expected Ok({:#?}), received Err({:#?}) from {:#?} vlidation.",
+			expected, value, object
+		),
+	}
+}
+
+pub fn assert_modification<T: Debug + PartialEq>(result: &Result<(), ValidationErrors>, object: &T, expected: &T) {
+	match result {
+		Ok(_) => assert_eq!(object, expected, "Result did not match expectations."),
+		Err(value) => panic!(
+			"Expected Ok(()), received Err({:#?}) from {:#?} validation.",
+			value, object
+		),
+	}
+}
+
+pub fn assert_validation<T: Debug>(result: &Result<(), ValidationErrors>, object: &T) {
+	if let Err(error) = result {
+		panic!(
+			"Expected Ok(()), received Err({:#?}) from {:#?} validation.",
+			error, object
+		);
+	}
+}

@@ -57,7 +57,7 @@ pub fn create_required(
 	};
 
 	if field.is_option() {
-		emit_error!(input.span(), "for Option fields, use 'is_some' instead 'required'");
+		emit_error!(input.span(), "useless for optional fields");
 		return quote! {};
 	}
 

@@ -1,2 +1,2 @@
 [alias]
-test-all = "test --lib --all-features"
+test-all = "test --all-features"
