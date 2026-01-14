@@ -252,8 +252,8 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 | **Rule** | **Description** |
 | :-------- | :------- |
 | `length`(range = \<range>, message = <?string>, code = <?string>) | Validates that the length (string or collection) is within limits. |
-| `allowlist`(mode = <"SINGLE" | "COLLECTION">, items = \<array>, message = <?string>, code = <?string>) | Validates that the value or collection items is present in the allowed list (allowlist). |
-| `blocklist`(mode = <"SINGLE" | "COLLECTION">, items = \<array>, message = <?string>, code = <?string>) | Validates that the value or collection items is NOT present in the forbidden list (blocklist). |
+| `allowlist`(mode = <"SINGLE" \| "COLLECTION">, items = \<array>, message = <?string>, code = <?string>) | Validates that the value or collection items is present in the allowed list (allowlist). |
+| `blocklist`(mode = <"SINGLE" \| "COLLECTION">, items = \<array>, message = <?string>, code = <?string>) | Validates that the value or collection items is NOT present in the forbidden list (blocklist). |
 
 ### For `numbers` fields
 
