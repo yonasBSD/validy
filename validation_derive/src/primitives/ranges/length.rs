@@ -43,7 +43,7 @@ impl ArgParser for LengthArgs {
 	}
 }
 
-pub fn create_length(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_length(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"length::validate_length as validate_length_fn",
 	));
@@ -63,17 +63,15 @@ pub fn create_length(input: ParseStream, field: &FieldAttributes, imports: &RefC
 		emit_error!(input.span(), "needs a range");
 	}
 
-	if field.is_option() || field.is_payload() {
-		quote! {
-			if let Err(e) = validate_length_fn(&(#reference.len()), #range, #field_name, #code, #message) {
-			  errors.push(e);
-		  }
-		}
+	if field.is_ref() {
+		field.set_as_ref(true);
 	} else {
-		quote! {
-			if let Err(e) = validate_length_fn(&#reference.len(), #range, #field_name, #code, #message) {
-			  errors.push(e);
-		  }
-		}
+		field.set_as_ref(false);
+	};
+
+	quote! {
+		if let Err(e) = validate_length_fn(&#reference.len(), #range, #field_name, #code, #message) {
+		  errors.push(e);
+	  }
 	}
 }

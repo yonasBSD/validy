@@ -43,7 +43,7 @@ impl ArgParser for ContainsArgs {
 	}
 }
 
-pub fn create_contains(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_contains(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"contains::validate_contains as validate_contains_fn",
 	));
@@ -64,13 +64,15 @@ pub fn create_contains(input: ParseStream, field: &FieldAttributes, imports: &Re
 		return quote! {};
 	}
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 			if let Err(e) = validate_contains_fn(#reference, #slice, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			if let Err(e) = validate_contains_fn(&#reference, #slice, #field_name, #code, #message) {
 			  errors.push(e);

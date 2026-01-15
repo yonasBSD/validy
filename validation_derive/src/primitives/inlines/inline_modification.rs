@@ -48,11 +48,13 @@ pub fn create_inline_modification(input: ParseStream, field: &mut FieldAttribute
 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(false);
 		quote! {
-			let mut #new_reference = &(#closure)(#reference, #(#extra_args),*);
+			let mut #new_reference = (#closure)(#reference, #(#extra_args),*);
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			let mut #new_reference = (#closure)(&#reference, #(#extra_args),*);
 		}

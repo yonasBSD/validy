@@ -43,7 +43,7 @@ impl ArgParser for SuffixArgs {
 	}
 }
 
-pub fn create_suffix(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_suffix(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"suffix::validate_suffix as validate_suffix_fn",
 	));
@@ -65,13 +65,15 @@ pub fn create_suffix(input: ParseStream, field: &FieldAttributes, imports: &RefC
 		return quote! {};
 	}
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 			if let Err(e) = validate_suffix_fn(#reference, #suffix, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			if let Err(e) = validate_suffix_fn(&#reference, #suffix, #field_name, #code, #message) {
 			  errors.push(e);

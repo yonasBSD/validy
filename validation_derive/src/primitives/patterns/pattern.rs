@@ -44,7 +44,7 @@ impl ArgParser for PatternArgs {
 	}
 }
 
-pub fn create_pattern(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_pattern(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"pattern::validate_pattern as validate_pattern_fn",
 	));
@@ -79,13 +79,15 @@ pub fn create_pattern(input: ParseStream, field: &FieldAttributes, imports: &Ref
 		return quote! {};
 	}
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 			if let Err(e) = validate_pattern_fn(#reference, #pattern, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			if let Err(e) = validate_pattern_fn(&#reference, #pattern, #field_name, #code, #message) {
 			  errors.push(e);

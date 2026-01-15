@@ -40,7 +40,7 @@ impl ArgParser for IpArgs {
 	}
 }
 
-pub fn create_ip(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_ip(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports
 		.borrow_mut()
 		.add(Import::ValidationFunction("ip::validate_ip as validate_ip_fn"));
@@ -56,13 +56,15 @@ pub fn create_ip(input: ParseStream, field: &FieldAttributes, imports: &RefCell<
 		Err(_) => IpArgs::default(),
 	};
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 			if let Err(e) = validate_ip_fn(#reference, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			if let Err(e) = validate_ip_fn(&#reference, #field_name, #code, #message) {
 			  errors.push(e);

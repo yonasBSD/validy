@@ -46,7 +46,7 @@ impl ArgParser for BlocklistArgs {
 	}
 }
 
-pub fn create_blocklist(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_blocklist(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"iter::validate_blocklist as validate_blocklist_fn",
 	));
@@ -71,6 +71,12 @@ pub fn create_blocklist(input: ParseStream, field: &FieldAttributes, imports: &R
 		emit_error!(input.span(), "needs a collection of items to use as blocklist");
 		return quote! {};
 	}
+
+	if field.is_ref() {
+		field.set_as_ref(true);
+	} else {
+		field.set_as_ref(false);
+	};
 
 	match mode {
 		Some(mode) if mode.value() == "SINGLE" => {

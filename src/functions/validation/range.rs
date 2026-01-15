@@ -26,8 +26,3 @@ where
 
 	Ok(())
 }
-
-pub fn example() {
-	let n = 6;
-	let _ = validate_range(&n, 0..5, "field", "code", "message");
-}

@@ -16,5 +16,6 @@ cargo expand --all-features --test mod validation::prefix >> temp/prefix.rs || t
 cargo expand --all-features --test mod validation::suffix >> temp/suffix.rs || true
 cargo expand --all-features --test mod validation::url >> temp/url.rs || true
 cargo expand --all-features --test mod validation::pattern >> temp/pattern.rs || true
+cargo expand --all-features --test mod validation::option >> temp/option.rs || true
 
 cargo check --all-features --test mod

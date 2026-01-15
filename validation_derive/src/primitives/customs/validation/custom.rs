@@ -28,7 +28,7 @@ impl ArgParser for CustomArgs {
 	}
 }
 
-pub fn create_custom(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_custom(input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
@@ -48,9 +48,19 @@ pub fn create_custom(input: ParseStream, field: &FieldAttributes) -> TokenStream
 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
-	quote! {
-		if let Err(e) = #function(&#reference, #field_name, #(#extra_args),*) {
-		  errors.push(e);
+	if field.is_ref() {
+		field.set_as_ref(true);
+		quote! {
+			if let Err(e) = #function(#reference, #field_name, #(#extra_args),*) {
+			  errors.push(e);
+			}
+		}
+	} else {
+		field.set_as_ref(false);
+		quote! {
+			if let Err(e) = #function(&#reference, #field_name, #(#extra_args),*) {
+			  errors.push(e);
+			}
 		}
 	}
 }

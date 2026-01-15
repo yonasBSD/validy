@@ -1,0 +1,4 @@
+- mais testes
+- otimizar validações sem modificações de campos opcionais
+  - atualmente está clonando e alocando variável mesmo quando é só validação (sem modificação)
+- provavelmente o for_each vai estar bugado depois do que fiz

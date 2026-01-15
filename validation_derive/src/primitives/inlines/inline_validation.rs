@@ -42,7 +42,7 @@ impl ArgParser for InlineValidationArgs {
 	}
 }
 
-pub fn create_inline_validation(input: ParseStream, field: &FieldAttributes) -> TokenStream {
+pub fn create_inline_validation(input: ParseStream, field: &mut FieldAttributes) -> TokenStream {
 	let reference = field.get_reference();
 	let field_name = field.get_name();
 	let content = remove_parens(input);
@@ -66,7 +66,8 @@ pub fn create_inline_validation(input: ParseStream, field: &FieldAttributes) -> 
 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 		  if !(#closure)(#reference, #(#extra_args),*) {
 			  errors.push(ValidationError::builder()
@@ -78,6 +79,7 @@ pub fn create_inline_validation(input: ParseStream, field: &FieldAttributes) -> 
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 		  if !(#closure)(&#reference, #(#extra_args),*) {
 			  errors.push(ValidationError::builder()

@@ -21,7 +21,7 @@ struct Test {
 }
 
 #[allow(unused)]
-#[derive(Debug, Deserialize, Default, Validate, PartialEq)]
+#[derive(Debug, Clone, Deserialize, Default, Validate, PartialEq)]
 #[validate(payload)]
 struct NestedTest {
 	#[validate(required("custom message", "custom_code"))]

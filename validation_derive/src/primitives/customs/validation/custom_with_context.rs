@@ -31,7 +31,7 @@ impl ArgParser for CustomWithContextArgs {
 
 pub fn create_custom_with_context(
 	input: ParseStream,
-	field: &FieldAttributes,
+	field: &mut FieldAttributes,
 	attributes: &ValidationAttributes,
 ) -> TokenStream {
 	if attributes.context.is_none() {
@@ -58,9 +58,19 @@ pub fn create_custom_with_context(
 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
-	quote! {
-		if let Err(e) = #function(&#reference, #field_name, context, #(#extra_args),*) {
-		  errors.push(e);
+	if field.is_ref() {
+		field.set_as_ref(true);
+		quote! {
+			if let Err(e) = #function(#reference, #field_name, context, #(#extra_args),*) {
+			  errors.push(e);
+			}
+		}
+	} else {
+		field.set_as_ref(false);
+		quote! {
+			if let Err(e) = #function(&#reference, #field_name, context, #(#extra_args),*) {
+			  errors.push(e);
+			}
 		}
 	}
 }

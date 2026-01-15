@@ -10,6 +10,7 @@ pub struct FieldAttributes {
 	initial_type: Option<Type>,
 	required_args: RequiredArgs,
 	as_payload: bool,
+	as_ref: bool,
 	operations: Vec<TokenStream>,
 	name: Option<Ident>,
 	index: Option<Index>,
@@ -25,6 +26,7 @@ impl FieldAttributes {
 			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
+			as_ref: false,
 			operations: Vec::new(),
 			name: Some(name.clone()),
 			index: None,
@@ -40,6 +42,7 @@ impl FieldAttributes {
 			initial_type: None,
 			required_args: RequiredArgs::default(),
 			as_payload,
+			as_ref: false,
 			operations: Vec::new(),
 			name: None,
 			index: Some(index.clone()),
@@ -50,6 +53,15 @@ impl FieldAttributes {
 
 	pub fn add_operation(&mut self, operation: TokenStream) {
 		self.operations.push(operation);
+	}
+
+	pub fn set_as_ref(&mut self, as_ref: bool) {
+		self.as_ref = as_ref;
+	}
+
+	pub fn is_ref(&self) -> bool {
+		let operations_is_empty = self.operations.iter().all(|operation| operation.is_empty());
+		self.as_ref || (operations_is_empty && (self.is_payload() || self.is_option()))
 	}
 
 	pub fn get_operations(&mut self) -> TokenStream {
@@ -71,7 +83,7 @@ impl FieldAttributes {
 			let new_reference = &self.get_reference();
 			let wrapper_reference = &self.get_wrapper_reference();
 
-			let update: TokenStream = if self.modifications == 1 {
+			let update = if self.is_ref() {
 				quote! { #new_reference = Some(#reference.clone()); }
 			} else {
 				quote! { #new_reference = Some(#reference); }
@@ -105,11 +117,24 @@ impl FieldAttributes {
 				}
 			}
 		} else if self.is_option() {
+			let initial_type = self.get_initial_type();
+			let reference = &self.get_reference();
+			let original_reference = self.get_original_reference();
+			self.increment_modifications();
 			let operations = &self.operations;
-			let reference = self.get_original_reference();
+			let new_reference = self.get_reference();
+
+			let update = if self.is_ref() {
+				quote! { #new_reference = Some(#reference.clone()); }
+			} else {
+				quote! { #new_reference = Some(#reference); }
+			};
+
 			quote! {
-				if let Some(#unwrapped) = #reference.as_ref() {
+			  let mut #new_reference: #initial_type = None;
+				if let Some(#unwrapped) = #original_reference.as_ref() {
 					#(#operations)*
+					#update
 				}
 			}
 		} else {

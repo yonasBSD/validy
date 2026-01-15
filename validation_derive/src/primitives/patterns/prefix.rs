@@ -43,7 +43,7 @@ impl ArgParser for PrefixArgs {
 	}
 }
 
-pub fn create_prefix(input: ParseStream, field: &FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_prefix(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
 		"prefix::validate_prefix as validate_prefix_fn",
 	));
@@ -65,13 +65,15 @@ pub fn create_prefix(input: ParseStream, field: &FieldAttributes, imports: &RefC
 		return quote! {};
 	}
 
-	if field.is_option() || field.is_payload() {
+	if field.is_ref() {
+		field.set_as_ref(true);
 		quote! {
 			if let Err(e) = validate_prefix_fn(#reference, #prefix, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
+		field.set_as_ref(false);
 		quote! {
 			if let Err(e) = validate_prefix_fn(&#reference, #prefix, #field_name, #code, #message) {
 			  errors.push(e);
