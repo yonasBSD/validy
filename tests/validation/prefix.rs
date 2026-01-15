@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(prefix("test"))]
-	pub a: Option<String>,
+	#[validate(prefix("test"))]
+	pub a: String,
+	#[validate(prefix("test", "custom message"))]
 	#[validate(prefix("test", "custom message"))]
 	pub b: Option<String>,
 	#[validate(prefix("test", code = "custom_code"))]
@@ -23,16 +25,16 @@ fn should_validate_prefixes() {
 		("exampletest", false),
 		("exampletestexample", false),
 		("teste", true),
-		("test", true),
 		("est", false),
 		("test example", true),
 		("example test", false),
 		("example test example", false),
+		("test", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -44,7 +46,6 @@ fn should_validate_prefixes() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

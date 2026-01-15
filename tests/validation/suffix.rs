@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(suffix("test"))]
-	pub a: Option<String>,
+	#[validate(suffix("test"))]
+	pub a: String,
+	#[validate(suffix("test", "custom message"))]
 	#[validate(suffix("test", "custom message"))]
 	pub b: Option<String>,
 	#[validate(suffix("test", code = "custom_code"))]
@@ -20,7 +22,6 @@ struct Test {
 fn should_validate_suffixes() {
 	let cases = [
 		("example", false),
-		("exampletest", true),
 		("exampletestexample", false),
 		("teste", false),
 		("test", true),
@@ -28,11 +29,12 @@ fn should_validate_suffixes() {
 		("test example", false),
 		("example test", true),
 		("example test example", false),
+		("exampletest", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -44,7 +46,6 @@ fn should_validate_suffixes() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

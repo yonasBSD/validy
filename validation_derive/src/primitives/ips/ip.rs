@@ -56,9 +56,17 @@ pub fn create_ip(input: ParseStream, field: &FieldAttributes, imports: &RefCell<
 		Err(_) => IpArgs::default(),
 	};
 
-	quote! {
-		if let Err(e) = validate_ip_fn(&#reference, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_ip_fn(#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_ip_fn(&#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

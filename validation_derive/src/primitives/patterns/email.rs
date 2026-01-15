@@ -56,9 +56,17 @@ pub fn create_email(input: ParseStream, field: &FieldAttributes, imports: &RefCe
 		Err(_) => EmailArgs::default(),
 	};
 
-	quote! {
-		if let Err(e) = validate_email_fn(&#reference, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_email_fn(#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_email_fn(&#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

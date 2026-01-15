@@ -65,9 +65,17 @@ pub fn create_prefix(input: ParseStream, field: &FieldAttributes, imports: &RefC
 		return quote! {};
 	}
 
-	quote! {
-		if let Err(e) = validate_prefix_fn(&#reference, #prefix, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_prefix_fn(#reference, #prefix, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_prefix_fn(&#reference, #prefix, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

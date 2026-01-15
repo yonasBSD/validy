@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(email)]
-	pub a: Option<String>,
+	#[validate(email)]
+	pub a: String,
+	#[validate(email("custom message"))]
 	#[validate(email("custom message"))]
 	pub b: Option<String>,
 	#[validate(email(code = "custom_code"))]
@@ -19,7 +21,6 @@ struct Test {
 #[test]
 fn should_validate_emails() {
 	let cases = [
-		("teste@gmail.com", true),
 		("teste-hifen@gmail.com", true),
 		("teste_sub@gmail.com", true),
 		("teste@dominio-hifen.com", true),
@@ -31,11 +32,12 @@ fn should_validate_emails() {
 		("teste@gmail.com.", false),
 		("teste@-gmail.com", false),
 		("teste@gmail-.com", false),
+		("teste@gmail.com", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -47,7 +49,6 @@ fn should_validate_emails() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

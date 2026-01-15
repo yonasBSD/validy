@@ -79,9 +79,17 @@ pub fn create_pattern(input: ParseStream, field: &FieldAttributes, imports: &Ref
 		return quote! {};
 	}
 
-	quote! {
-		if let Err(e) = validate_pattern_fn(&#reference, #pattern, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_pattern_fn(#reference, #pattern, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_pattern_fn(&#reference, #pattern, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

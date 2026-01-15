@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(ipv6)]
-	pub a: Option<String>,
+	#[validate(ipv6)]
+	pub a: String,
+	#[validate(ipv6("custom message"))]
 	#[validate(ipv6("custom message"))]
 	pub b: Option<String>,
 	#[validate(ipv6(code = "custom_code"))]
@@ -19,7 +21,6 @@ struct Test {
 #[test]
 fn should_validate_ipv6s() {
 	let cases = [
-		("::1", true),
 		("::", true),
 		("2001:db8::1", true),
 		("2001:0db8:85a3:0000:0000:8a2e:0370:7334", true),
@@ -37,11 +38,12 @@ fn should_validate_ipv6s() {
 		("2001:db8:85a3:0000:0000:8a2e:0370:7334:1234", false),
 		(":", false),
 		("10000::1", false),
+		("::1", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -53,7 +55,6 @@ fn should_validate_ipv6s() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(contains("test"))]
-	pub a: Option<String>,
+	#[validate(contains("test"))]
+	pub a: String,
+	#[validate(contains("test", "custom message"))]
 	#[validate(contains("test", "custom message"))]
 	pub b: Option<String>,
 	#[validate(contains("test", code = "custom_code"))]
@@ -32,7 +34,7 @@ fn should_validate_contains() {
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -44,7 +46,6 @@ fn should_validate_contains() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

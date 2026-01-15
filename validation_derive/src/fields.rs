@@ -124,6 +124,10 @@ impl FieldAttributes {
 		self.required_args = required_args;
 	}
 
+	pub fn is_payload(&self) -> bool {
+		self.as_payload
+	}
+
 	pub fn is_option(&self) -> bool {
 		if let Type::Path(type_path) = &self.final_type
 			&& let Some(segment) = type_path.path.segments.last()

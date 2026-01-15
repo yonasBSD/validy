@@ -9,7 +9,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(allowlist("SINGLE", ["a", "b"]))]
-	pub a: Option<String>,
+	#[validate(allowlist("SINGLE", ["a", "b"]))]
+	pub a: String,
+	#[validate(allowlist("SINGLE", ["a", "b"], "custom message"))]
 	#[validate(allowlist("SINGLE", ["a", "b"], "custom message"))]
 	pub b: Option<String>,
 	#[validate(allowlist("SINGLE", ["a", "b"], code = "custom_code"))]
@@ -17,19 +19,27 @@ struct Test {
 	#[validate(allowlist("SINGLE", ["a", "b"], "custom message", "custom_code"))]
 	pub d: Option<String>,
 	#[validate(allowlist("COLLECTION", ["a", "b"]))]
-	pub e: Option<Vec<String>>,
+	#[validate(allowlist("COLLECTION", ["a", "b"]))]
+	pub e: Vec<String>,
+	#[validate(allowlist("COLLECTION", [("a".to_string(), "c".to_string()), ("b".to_string(), "d".to_string())], "custom message"))]
 	#[validate(allowlist("COLLECTION", [("a".to_string(), "c".to_string()), ("b".to_string(), "d".to_string())], "custom message"))]
 	pub f: Option<HashMap<String, String>>,
 	#[validate(allowlist("COLLECTION", ["a", "b"], code = "custom_code"))]
 	pub g: Option<HashSet<String>>,
 	#[validate(allowlist("COLLECTION", ["a", "b"], "custom message", "custom_code"))]
 	pub h: Option<VecDeque<String>>,
+	#[validate(allowlist("SINGLE", [0, 4], "custom message", "custom_code"))]
+	#[validate(allowlist("SINGLE", [0, 4], "custom message", "custom_code"))]
+	pub i: u8,
+	#[validate(allowlist("SINGLE", [0, 4], "custom message", "custom_code"))]
+	#[validate(allowlist("SINGLE", [0, 4], "custom message", "custom_code"))]
+	pub j: Option<u8>,
 }
 
 #[test]
 fn should_validate_allowlists() {
 	let cases = (
-		[("a", true), ("b", true), ("c", false), ("d", false)],
+		[("b", true), ("c", false), ("d", false), ("a", true)],
 		[
 			(Vec::<String>::new(), true),
 			(vec!["a".into()], true),
@@ -60,11 +70,12 @@ fn should_validate_allowlists() {
 			(VecDeque::from(["b".into(), "c".into()]), false),
 			(VecDeque::from(["b".into(), "a".into()]), true),
 		],
+		[(0, true), (5, false), (6, false), (4, true)],
 	);
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.0.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -76,7 +87,6 @@ fn should_validate_allowlists() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.0.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();
@@ -120,7 +130,7 @@ fn should_validate_allowlists() {
 
 	test.d = None;
 	for (case, is_valid) in cases.1.iter() {
-		test.e = Some(case.clone());
+		test.e = case.clone();
 		let result = test.validate();
 
 		if *is_valid {
@@ -132,7 +142,6 @@ fn should_validate_allowlists() {
 		}
 	}
 
-	test.e = None;
 	for (case, is_valid) in cases.2.iter() {
 		test.f = Some(case.clone());
 		let result = test.validate();
@@ -170,6 +179,33 @@ fn should_validate_allowlists() {
 		} else {
 			assert_errors!(result, test, {
 				"h" => ("custom_code", "custom message"),
+			});
+		}
+	}
+
+	test.h = None;
+	for (case, is_valid) in cases.5.iter() {
+		test.i = *case;
+		let result = test.validate();
+
+		if *is_valid {
+			assert_validation!(result, test);
+		} else {
+			assert_errors!(result, test, {
+				"i" => ("custom_code", "custom message"),
+			});
+		}
+	}
+
+	for (case, is_valid) in cases.5.iter() {
+		test.j = Some(*case);
+		let result = test.validate();
+
+		if *is_valid {
+			assert_validation!(result, test);
+		} else {
+			assert_errors!(result, test, {
+				"j" => ("custom_code", "custom message"),
 			});
 		}
 	}

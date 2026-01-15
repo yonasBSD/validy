@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(pattern(r"^[A-Z]{3}-\d{3}$"))]
-	pub a: Option<String>,
+	#[validate(pattern(r"^[A-Z]{3}-\d{3}$"))]
+	pub a: String,
+	#[validate(pattern(r"^[A-Z]{3}-\d{3}$", "custom message"))]
 	#[validate(pattern(r"^[A-Z]{3}-\d{3}$", "custom message"))]
 	pub b: Option<String>,
 	#[validate(pattern(r"^[A-Z]{3}-\d{3}$", code = "custom_code"))]
@@ -19,7 +21,6 @@ struct Test {
 #[test]
 fn should_validate_patterns() {
 	let cases = [
-		("ABC-123", true),
 		("XYZ-000", true),
 		("BRA-999", true),
 		("abc-123", false),
@@ -30,11 +31,12 @@ fn should_validate_patterns() {
 		("ABC-1234", false),
 		("123-ABC", false),
 		("", false),
+		("ABC-123", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -46,7 +48,6 @@ fn should_validate_patterns() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

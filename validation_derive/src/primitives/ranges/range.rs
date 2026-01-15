@@ -64,9 +64,17 @@ pub fn create_range(input: ParseStream, field: &FieldAttributes, imports: &RefCe
 		return quote! {};
 	}
 
-	quote! {
-		if let Err(e) = validate_range_fn(&#reference, #range, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_range_fn(#reference, #range, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_range_fn(&#reference, #range, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

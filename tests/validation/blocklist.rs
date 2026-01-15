@@ -9,7 +9,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(blocklist("SINGLE", ["a", "b"]))]
-	pub a: Option<String>,
+	#[validate(blocklist("SINGLE", ["a", "b"]))]
+	pub a: String,
+	#[validate(blocklist("SINGLE", ["a", "b"], "custom message"))]
 	#[validate(blocklist("SINGLE", ["a", "b"], "custom message"))]
 	pub b: Option<String>,
 	#[validate(blocklist("SINGLE", ["a", "b"], code = "custom_code"))]
@@ -17,24 +19,32 @@ struct Test {
 	#[validate(blocklist("SINGLE", ["a", "b"], "custom message", "custom_code"))]
 	pub d: Option<String>,
 	#[validate(blocklist("COLLECTION", ["a", "b"]))]
-	pub e: Option<Vec<String>>,
+	#[validate(blocklist("COLLECTION", ["a", "b"]))]
+	pub e: Vec<String>,
+	#[validate(blocklist("COLLECTION", [("a".to_string(), "c".to_string()), ("b".to_string(), "d".to_string())], "custom message"))]
 	#[validate(blocklist("COLLECTION", [("a".to_string(), "c".to_string()), ("b".to_string(), "d".to_string())], "custom message"))]
 	pub f: Option<HashMap<String, String>>,
 	#[validate(blocklist("COLLECTION", ["a", "b"], code = "custom_code"))]
 	pub g: Option<HashSet<String>>,
 	#[validate(blocklist("COLLECTION", ["a", "b"], "custom message", "custom_code"))]
 	pub h: Option<VecDeque<String>>,
+	#[validate(blocklist("SINGLE", [1, 4], "custom message", "custom_code"))]
+	#[validate(blocklist("SINGLE", [1, 4], "custom message", "custom_code"))]
+	pub i: u8,
+	#[validate(blocklist("SINGLE", [1, 4], "custom message", "custom_code"))]
+	#[validate(blocklist("SINGLE", [1, 4], "custom message", "custom_code"))]
+	pub j: Option<u8>,
 }
 
 #[test]
-fn should_validate_blocklistss() {
+fn should_validate_blocklists() {
 	let cases = (
 		[("a", false), ("b", false), ("c", true), ("d", true)],
 		[
 			(Vec::<String>::new(), true),
 			(vec!["a".into()], false),
-			(vec!["d".into(), "c".into()], true),
 			(vec!["b".into(), "a".into()], false),
+			(vec!["d".into(), "c".into()], true),
 		],
 		[
 			(HashMap::<String, String>::new(), true),
@@ -60,11 +70,12 @@ fn should_validate_blocklistss() {
 			(VecDeque::from(["d".into(), "c".into()]), true),
 			(VecDeque::from(["b".into(), "a".into()]), false),
 		],
+		[(1, false), (5, true), (4, false), (6, true)],
 	);
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.0.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -76,7 +87,6 @@ fn should_validate_blocklistss() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.0.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();
@@ -120,7 +130,7 @@ fn should_validate_blocklistss() {
 
 	test.d = None;
 	for (case, is_valid) in cases.1.iter() {
-		test.e = Some(case.clone());
+		test.e = case.clone();
 		let result = test.validate();
 
 		if *is_valid {
@@ -132,7 +142,6 @@ fn should_validate_blocklistss() {
 		}
 	}
 
-	test.e = None;
 	for (case, is_valid) in cases.2.iter() {
 		test.f = Some(case.clone());
 		let result = test.validate();
@@ -170,6 +179,33 @@ fn should_validate_blocklistss() {
 		} else {
 			assert_errors!(result, test, {
 				"h" => ("custom_code", "custom message"),
+			});
+		}
+	}
+
+	test.h = None;
+	for (case, is_valid) in cases.5.iter() {
+		test.i = *case;
+		let result = test.validate();
+
+		if *is_valid {
+			assert_validation!(result, test);
+		} else {
+			assert_errors!(result, test, {
+				"i" => ("custom_code", "custom message"),
+			});
+		}
+	}
+
+	for (case, is_valid) in cases.5.iter() {
+		test.j = Some(*case);
+		let result = test.validate();
+
+		if *is_valid {
+			assert_validation!(result, test);
+		} else {
+			assert_errors!(result, test, {
+				"j" => ("custom_code", "custom message"),
 			});
 		}
 	}

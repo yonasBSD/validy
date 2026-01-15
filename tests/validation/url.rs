@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(url)]
-	pub a: Option<String>,
+	#[validate(url)]
+	pub a: String,
+	#[validate(url("custom message"))]
 	#[validate(url("custom message"))]
 	pub b: Option<String>,
 	#[validate(url(code = "custom_code"))]
@@ -19,7 +21,6 @@ struct Test {
 #[test]
 fn should_validate_urls() {
 	let cases = [
-		("https://www.google.com", true),
 		("http://site-com-hifen.com", true),
 		("www.teste.org", true),
 		("google.com", true),
@@ -33,11 +34,12 @@ fn should_validate_urls() {
 		("site.abcdefg", false),
 		("http://.com", false),
 		("site.123", false),
+		("https://www.google.com", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -49,7 +51,6 @@ fn should_validate_urls() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

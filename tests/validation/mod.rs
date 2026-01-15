@@ -1,13 +1,14 @@
-pub mod allowlists;
-pub mod blocklists;
+pub mod allowlist;
+pub mod blocklist;
 pub mod contains;
 pub mod email;
 pub mod ip;
 pub mod ipv4;
 pub mod ipv6;
 pub mod length;
-pub mod options;
+pub mod option;
 pub mod pattern;
 pub mod prefix;
+pub mod range;
 pub mod suffix;
 pub mod url;

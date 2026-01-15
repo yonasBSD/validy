@@ -56,9 +56,17 @@ pub fn create_ipv4(input: ParseStream, field: &FieldAttributes, imports: &RefCel
 		Err(_) => Ipv4Args::default(),
 	};
 
-	quote! {
-		if let Err(e) = validate_ipv4_fn(&#reference, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_ipv4_fn(#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_ipv4_fn(&#reference, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

@@ -9,7 +9,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(length(0..5))]
-	pub a: Option<String>,
+	#[validate(length(0..5))]
+	pub a: String,
+	#[validate(length(0..5, "custom message"))]
 	#[validate(length(0..5, "custom message"))]
 	pub b: Option<String>,
 	#[validate(length(0..5, code = "custom_code"))]
@@ -17,7 +19,9 @@ struct Test {
 	#[validate(length(0..5, "custom message", "custom_code"))]
 	pub d: Option<String>,
 	#[validate(length(0..5))]
-	pub e: Option<Vec<String>>,
+	#[validate(length(0..5))]
+	pub e: Vec<String>,
+	#[validate(length(0..5, "custom message"))]
 	#[validate(length(0..5, "custom message"))]
 	pub f: Option<HashMap<String, String>>,
 	#[validate(length(0..5, code = "custom_code"))]
@@ -30,22 +34,22 @@ struct Test {
 fn should_validate_lengths() {
 	let cases = (
 		[
-			("", true),
 			("a", true),
 			("ab", true),
 			("abc", true),
 			("abcd", true),
 			("abcde", false),
 			("abcdef", false),
+			("", true),
 		],
 		[
 			(Vec::<String>::new(), true),
 			(vec!["a".into()], true),
 			(vec!["a".into(); 2], true),
 			(vec!["a".into(); 3], true),
-			(vec!["a".into(); 4], true),
 			(vec!["a".into(); 5], false),
 			(vec!["a".into(); 6], false),
+			(vec!["a".into(); 4], true),
 		],
 		[
 			(HashMap::<String, String>::new(), true),
@@ -78,7 +82,7 @@ fn should_validate_lengths() {
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.0.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -90,7 +94,6 @@ fn should_validate_lengths() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.0.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();
@@ -134,7 +137,7 @@ fn should_validate_lengths() {
 
 	test.d = None;
 	for (case, is_valid) in cases.1.iter() {
-		test.e = Some(case.clone());
+		test.e = case.clone();
 		let result = test.validate();
 
 		if *is_valid {
@@ -146,7 +149,6 @@ fn should_validate_lengths() {
 		}
 	}
 
-	test.e = None;
 	for (case, is_valid) in cases.2.iter() {
 		test.f = Some(case.clone());
 		let result = test.validate();

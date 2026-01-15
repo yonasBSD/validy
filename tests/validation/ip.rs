@@ -7,7 +7,9 @@ use crate::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 struct Test {
 	#[validate(ip)]
-	pub a: Option<String>,
+	#[validate(ip)]
+	pub a: String,
+	#[validate(ip("custom message"))]
 	#[validate(ip("custom message"))]
 	pub b: Option<String>,
 	#[validate(ip(code = "custom_code"))]
@@ -19,7 +21,6 @@ struct Test {
 #[test]
 fn should_validate_ips() {
 	let cases = [
-		("127.0.0.1", true),
 		("0.0.0.0", true),
 		("255.255.255.255", true),
 		("192.168.0.1", true),
@@ -36,11 +37,12 @@ fn should_validate_ips() {
 		("1.2.3.4.5", false),
 		("1200::AB00::1", false),
 		("g::1", false),
+		("127.0.0.1", true),
 	];
 
 	let mut test = Test::default();
 	for (case, is_valid) in cases.iter() {
-		test.a = Some(case.to_string());
+		test.a = case.to_string();
 		let result = test.validate();
 
 		if *is_valid {
@@ -52,7 +54,6 @@ fn should_validate_ips() {
 		}
 	}
 
-	test.a = None;
 	for (case, is_valid) in cases.iter() {
 		test.b = Some(case.to_string());
 		let result = test.validate();

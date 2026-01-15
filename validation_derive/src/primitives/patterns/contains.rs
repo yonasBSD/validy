@@ -64,9 +64,17 @@ pub fn create_contains(input: ParseStream, field: &FieldAttributes, imports: &Re
 		return quote! {};
 	}
 
-	quote! {
-		if let Err(e) = validate_contains_fn(&#reference, #slice, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_contains_fn(#reference, #slice, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_contains_fn(&#reference, #slice, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }

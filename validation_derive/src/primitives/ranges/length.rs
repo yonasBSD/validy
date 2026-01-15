@@ -63,9 +63,17 @@ pub fn create_length(input: ParseStream, field: &FieldAttributes, imports: &RefC
 		emit_error!(input.span(), "needs a range");
 	}
 
-	quote! {
-		if let Err(e) = validate_length_fn(&#reference.len(), #range, #field_name, #code, #message) {
-		  errors.push(e);
-	  }
+	if field.is_option() || field.is_payload() {
+		quote! {
+			if let Err(e) = validate_length_fn(&(#reference.len()), #range, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
+	} else {
+		quote! {
+			if let Err(e) = validate_length_fn(&#reference.len(), #range, #field_name, #code, #message) {
+			  errors.push(e);
+		  }
+		}
 	}
 }
