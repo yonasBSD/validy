@@ -12,15 +12,15 @@ use crate::{
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
-pub struct BeforeArgs {
+pub struct BeforeNowArgs {
 	pub accept_equals: LitBool,
 	pub code: LitStr,
 	pub message: LitStr,
 }
 
-impl Default for BeforeArgs {
+impl Default for BeforeNowArgs {
 	fn default() -> Self {
-		BeforeArgs {
+		BeforeNowArgs {
 			accept_equals: LitBool::new(false, Span::call_site()),
 			code: LitStr::new("before_now", Span::call_site()),
 			message: LitStr::new("is after now", Span::call_site()),
@@ -28,7 +28,7 @@ impl Default for BeforeArgs {
 	}
 }
 
-impl ArgParser for BeforeArgs {
+impl ArgParser for BeforeNowArgs {
 	const POSITIONAL_KEYS: &'static [&'static str] = &["accept_equals", "message", "code"];
 
 	fn apply_value(&mut self, name: &str, input: ParseStream) -> Result<()> {
@@ -73,7 +73,7 @@ pub fn create_before_now(
 	let reference = field.get_reference();
 	let content = remove_parens(input);
 
-	let BeforeArgs {
+	let BeforeNowArgs {
 		accept_equals,
 		code,
 		message,
@@ -81,7 +81,7 @@ pub fn create_before_now(
 		Ok(content) => parse_attrs(&content)
 			.inspect_err(|erro| emit_error!(erro.span(), "{}", erro))
 			.unwrap_or_default(),
-		Err(_) => BeforeArgs::default(),
+		Err(_) => BeforeNowArgs::default(),
 	};
 
 	if field.is_ref() {

@@ -266,11 +266,15 @@ Primitive rules of `#[validate(<rule>, ...)]` rule group.
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| `time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified time/date format. Not parse the string. |
-| `naive_time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified naive time format. Not parse the string. |
-| `after_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly after the current time. |
-| `before_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the date/time is strictly before the current time. |
-| `now`(ms_tolerance = <?int>, message = <?string>, code = <?string>) | Validates that the date/time matches the current time within a tolerance (default: 500ms). |
+| `time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified `DateTime<FixedOffset>` format. Not parse the string. |
+| `naive_time`(format = \<string>, message = <?string>, code = <?string>) | Validates that the string matches the specified `NaiveDateTime` format. Not parse the string. |
+| `after_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the `DateTime<FixedOffset>` is strictly after the current time. |
+| `before_now`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the `DateTime<FixedOffset>` is strictly before the current time. |
+| `now`(ms_tolerance = <?int>, message = <?string>, code = <?string>) | Validates that the `DateTime<FixedOffset>` matches the current time within a tolerance (default: 500ms). |
+| `after_today`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the `NaiveDate` is strictly after the current day. |
+| `before_today`(accept_equals = <?bool>, message = <?string>, code = <?string>) | Validates that the `NaiveDate` is strictly before the current day. |
+| `today`(message = <?string>, code = <?string>) | Validates that the `NaiveDate matches the current day. |
+
 
 ### Custom rules
 

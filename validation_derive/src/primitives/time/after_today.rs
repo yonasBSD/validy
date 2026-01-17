@@ -12,23 +12,23 @@ use crate::{
 	primitives::commons::{ArgParser, parse_attrs, remove_parens},
 };
 
-pub struct AfterNowArgs {
+pub struct AfterTodayArgs {
 	pub accept_equals: LitBool,
 	pub code: LitStr,
 	pub message: LitStr,
 }
 
-impl Default for AfterNowArgs {
+impl Default for AfterTodayArgs {
 	fn default() -> Self {
-		AfterNowArgs {
+		AfterTodayArgs {
 			accept_equals: LitBool::new(false, Span::call_site()),
-			code: LitStr::new("after_now", Span::call_site()),
-			message: LitStr::new("is before now", Span::call_site()),
+			code: LitStr::new("after_today", Span::call_site()),
+			message: LitStr::new("is before today", Span::call_site()),
 		}
 	}
 }
 
-impl ArgParser for AfterNowArgs {
+impl ArgParser for AfterTodayArgs {
 	const POSITIONAL_KEYS: &'static [&'static str] = &["accept_equals", "message", "code"];
 
 	fn apply_value(&mut self, name: &str, input: ParseStream) -> Result<()> {
@@ -60,16 +60,20 @@ impl ArgParser for AfterNowArgs {
 	}
 }
 
-pub fn create_after_now(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
+pub fn create_after_today(
+	input: ParseStream,
+	field: &mut FieldAttributes,
+	imports: &RefCell<ImportsSet>,
+) -> TokenStream {
 	imports.borrow_mut().add(Import::ValidationFunction(
-		"time::validate_is_after_now as validate_is_after_now_fn",
+		"time::validate_is_after_today as validate_is_after_today_fn",
 	));
 
 	let field_name = field.get_name();
 	let reference = field.get_reference();
 	let content = remove_parens(input);
 
-	let AfterNowArgs {
+	let AfterTodayArgs {
 		accept_equals,
 		code,
 		message,
@@ -77,20 +81,20 @@ pub fn create_after_now(input: ParseStream, field: &mut FieldAttributes, imports
 		Ok(content) => parse_attrs(&content)
 			.inspect_err(|erro| emit_error!(erro.span(), "{}", erro))
 			.unwrap_or_default(),
-		Err(_) => AfterNowArgs::default(),
+		Err(_) => AfterTodayArgs::default(),
 	};
 
 	if field.is_ref() {
 		field.set_is_ref(true);
 		quote! {
-			if let Err(e) = validate_is_after_now_fn(#reference, #accept_equals, #field_name, #code, #message) {
+			if let Err(e) = validate_is_after_today_fn(#reference, #accept_equals, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}
 	} else {
 		field.set_is_ref(false);
 		quote! {
-			if let Err(e) = validate_is_after_now_fn(&#reference, #accept_equals, #field_name, #code, #message) {
+			if let Err(e) = validate_is_after_today_fn(&#reference, #accept_equals, #field_name, #code, #message) {
 			  errors.push(e);
 		  }
 		}

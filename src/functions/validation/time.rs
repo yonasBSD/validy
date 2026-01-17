@@ -1,5 +1,5 @@
 use crate::core::ValidationError;
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, TimeZone, Utc};
 use std::borrow::Cow;
 
 pub fn validate_naive_time(
@@ -145,6 +145,68 @@ pub fn validate_is_now<Tz: TimeZone>(
 	let diff = now.signed_duration_since(target).num_milliseconds().abs();
 
 	if diff > ms_tolerance {
+		return Err(ValidationError::builder()
+			.with_field(field)
+			.as_simple(code)
+			.with_message(message)
+			.build()
+			.into());
+	}
+
+	Ok(())
+}
+
+pub fn validate_is_after_today(
+	target: &NaiveDate,
+	accept_equals: bool,
+	field: impl Into<Cow<'static, str>>,
+	code: impl Into<Cow<'static, str>>,
+	message: impl Into<Cow<'static, str>>,
+) -> Result<(), ValidationError> {
+	let today = Utc::now().date_naive();
+
+	if (accept_equals && *target < today) || (!accept_equals && *target <= today) {
+		return Err(ValidationError::builder()
+			.with_field(field)
+			.as_simple(code)
+			.with_message(message)
+			.build()
+			.into());
+	}
+
+	Ok(())
+}
+
+pub fn validate_is_before_today(
+	target: &NaiveDate,
+	accept_equals: bool,
+	field: impl Into<Cow<'static, str>>,
+	code: impl Into<Cow<'static, str>>,
+	message: impl Into<Cow<'static, str>>,
+) -> Result<(), ValidationError> {
+	let today = Utc::now().date_naive();
+
+	if (accept_equals && *target > today) || (!accept_equals && *target >= today) {
+		return Err(ValidationError::builder()
+			.with_field(field)
+			.as_simple(code)
+			.with_message(message)
+			.build()
+			.into());
+	}
+
+	Ok(())
+}
+
+pub fn validate_is_today(
+	target: &NaiveDate,
+	field: impl Into<Cow<'static, str>>,
+	code: impl Into<Cow<'static, str>>,
+	message: impl Into<Cow<'static, str>>,
+) -> Result<(), ValidationError> {
+	let today = Utc::now().date_naive();
+
+	if *target != today {
 		return Err(ValidationError::builder()
 			.with_field(field)
 			.as_simple(code)
