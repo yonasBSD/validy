@@ -21,6 +21,11 @@ A powerful and flexible Rust library based on procedural macros for `validation`
   - [For `date` or `time` fields](#for-date-or-time-fields-1)
   - [Custom rules](#custom-rules-1)
 - [🔧 Special Rules](#-special-rules)
+- [📐 Useful Macros](#-useful-macros)
+  - [For `errors`](#for-errors)
+  - [For `assertions`](#for-assertions)
+- [📁 More Examples](#-more-examples)
+
 
 ## 📝 Installation
 
@@ -50,7 +55,7 @@ use std::sync::Arc;
 use validation::core::{Validate, ValidationError};
 
 #[derive(Debug, Deserialize, Validate)]
-#[validate(asynchronous, context = Arc<dyn UserService>, payload)]
+#[validate(asynchronous, context = Arc<dyn UserService>, payload, axum)]
 pub struct CreateUserExampleDTO {
 	#[modify(trim)]
 	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
@@ -76,7 +81,7 @@ pub struct CreateUserExampleDTO {
 	pub password: String,
 
 	#[special(from_type(String))] // Id will be deserialized as Option<String>.
-	#[modify(lowercase)] // You can modify or validade as String, is has some.
+	#[modify(lowercase)] // You can modify or validade as String, if has some.
 	#[modify(inline(|_| 0))] // You can parse to the final value type.
 	#[validate(range(3..=12))] // And validade or modify again.
 	pub dependent_id: u16,
@@ -176,7 +181,7 @@ In contrast, no primitive `rule` is asynchronous, therefore the `asynchronous` c
 
 ## 🔌 Axum Integration
 
-When enabling the `axum` feature the library automatically generates the `FromRequest` implementation for your `struct`. The automated flow:
+When enabling the `axum` feature the library automatically generates the `FromRequest` implementation for your `struct` with `axum` configuration attribute enabled. The automated flow:
 
 - *Extract:* receives the JSON body.
 - *Deserialize:* deserializes the body.
@@ -191,6 +196,23 @@ When enabling the `axum` feature the library automatically generates the `FromRe
 See an example:
 
 ```rust
+#[derive(Debug, Deserialize, Validate)]
+#[validate(asynchronous, context = Arc<dyn UserService>, payload, axum)]
+pub struct CreateUserDTO {
+	#[modify(trim)]
+	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
+	pub name: String,
+
+	#[modify(trim)]
+	#[validate(length(0..=254, "email must not be more than 254 characters"))]
+	#[validate(email("invalid email format"))]
+	#[validate(async_custom_with_context(validate_unique_email))]
+	pub email: String,
+
+	#[validate(length(3..=12, code = "size", message = "password must be between 3 and 12 characters"))]
+	pub password: String,
+}
+
 #[debug_handler]
 pub async fn create_user(
 	State(service): State<Arc<dyn UserService>>,
@@ -220,6 +242,8 @@ Crate behavior can be adjusted in Cargo.toml.
 | `ip` | Enables `ip` validation rule. | |
 | `time` | Enables time validation rules. | `chrono` |
 | `axum` | `derive` \| Enables axum integration. | `axum` |
+| `macro_rules` | Enables macros for validation errors. | |
+| `macro_rules_assertions` | Enables macros for assertions (tests). | `pretty_assertions` |
 
 ## 🚧 Validation Rules
 
@@ -346,3 +370,69 @@ Primitive rules of `#[special(<rule>, ...)]` rule group.
 | `nested`(value = <type>, wrapper = <?type>) | Validates the fields of a nested struct. Warning: cyclical references can cause many problems. |
 | `for_each`(config?(from_item = <?type>, to_collection = <?type>, from_collection = <?type>), \<rule>) | Applies validation rules  to every element in a collection. The arg `from_item` from optional `config` rule defines the type of each item of the collection. The arg `to_collection` defines the final type of the collection and the arg `from_collection` defines de initial type of the collection. Just `from_type` adapters to collections. |
 | `from_type`(value = <?type>) | Need to be defined above and first all others rules. |
+
+## 📐 Useful Macros
+
+Sometimes, you might prefer to use macros to declare errors or assertions.
+
+### For `errors`
+
+All requires that `macro_rules` feature flag is enabled.
+
+```rust
+// SimpleValidationError
+let error = validation_error!(field.to_string(), "custom_code", "custom message");
+```
+
+```rust
+// SimpleValidationError
+let error = validation_error!(field.to_string(), "custom_code");
+```
+
+```rust
+// ValidationErrors
+let errors = validation_errors! {
+  "a" => ("custom_code", "custom message"),
+	"b" => ("nested", validation_errors! {
+	  "c" => ("custom_code", "custom message")
+	})
+};
+```
+
+```rust
+// NestedValidationError
+let error = nested_validation_error!(
+	field.to_string(),
+	"custom_code",
+	validation_errors! {
+    "a" => ("custom_code", "custom message"),
+	}
+);
+```
+
+### For `assertions`
+  
+All requires that `macro_rules_assertions` feature flag is enabled.
+
+```rust
+let mut wrapper = TestWrapper::default();
+let mut result = Test::validate_and_parse(&wrapper);
+assert_errors!(result, wrapper, { // Wrapper is the input
+	"a" => ("required", "is required"),
+});
+```
+
+```rust
+let result = test.validate_and_modificate();
+assert_validation!(result, test);
+assert_modification!(test.b, Some(expected.to_string()), test);
+```
+
+```rust
+result = Test::validate_and_parse(&wrapper);
+assert_parsed!(result, wrapper, Test { a: *expected, b: None });
+```
+
+## 📁 More Examples
+
+If you need more references, you can use the [/tests](/tests) as an example.

@@ -1,7 +1,7 @@
 use chrono::{Duration, NaiveDate, Utc};
 use validation::core::Validate;
 
-use crate::{assert_errors, assert_validation};
+use validation::{assert_errors, assert_validation};
 
 #[allow(unused)]
 #[derive(Debug, Default, Validate, PartialEq)]

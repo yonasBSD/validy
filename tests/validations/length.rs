@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use serde::Deserialize;
 use validation::core::Validate;
 
-use crate::{assert_errors, assert_validation};
+use validation::{assert_errors, assert_validation};
 
 #[allow(unused)]
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]

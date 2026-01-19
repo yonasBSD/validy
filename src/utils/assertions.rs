@@ -1,11 +1,11 @@
+use crate::core::ValidationErrors;
 use pretty_assertions::assert_eq;
 use std::fmt::Debug;
-use validation::core::ValidationErrors;
 
 #[macro_export]
 macro_rules! assert_errors {
 	($result:expr, $object:expr, $( $errors:tt )*) => {
-	  let expected = ::validation::validation_errors! $( $errors )*;
+	  let expected = $crate::validation_errors! $( $errors )*;
 		$crate::utils::assertions::assert_validation_errors(
 			&$result,
 			&$object,
