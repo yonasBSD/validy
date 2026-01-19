@@ -239,7 +239,7 @@ Crate behavior can be adjusted in Cargo.toml.
 | `modification` | Enables modification functions. Needed by almost all `derive` primitives modification rules. | `heck` |
 | `email` | Enables `email` validation rule. | `email_address` |
 | `pattern` | Enables `pattern` and `url` validation rules. Uses `moka` to cache `regex`. Cache can be configured calling `ValidationSettings::init(...)`. | `moka`, `regex` | 
-| `ip` | Enables `ip` validation rule. | |
+| `ip` | Enables `ipI'm a busy and currently not very successful graduate student, so don't expect too much from me in terms of maintenance. But I did my best.` validation rule. | |
 | `time` | Enables time validation rules. | `chrono` |
 | `axum` | `derive` \| Enables axum integration. | `axum` |
 | `macro_rules` | Enables macros for validation errors. | |
