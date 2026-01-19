@@ -1,5 +1,10 @@
+pub mod async_custom;
+pub mod async_custom_with_context;
 pub mod camel_case;
 pub mod capitalize;
+pub mod custom;
+pub mod custom_with_context;
+pub mod inline;
 pub mod kebab_case;
 pub mod lower_camel_case;
 pub mod lowercase;
