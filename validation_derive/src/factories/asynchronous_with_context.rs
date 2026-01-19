@@ -99,12 +99,25 @@ impl<'a> AbstractValidationFactory for AsyncValidationWithContextFactory<'a> {
 		let (field_type, _) = get_nested_type(input);
 		let context_type = self.context_type;
 
-		quote! {
-		  if let Err(e) = <#field_type as AsyncValidateWithContext<#context_type>>::async_validate_with_context(&#reference, &context).await {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
+		if field.is_ref() {
+			field.set_is_ref(true);
+			quote! {
+			  if let Err(e) = <#field_type as AsyncValidateWithContext<#context_type>>::async_validate_with_context(#reference, &context).await {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+				}
+			}
+		} else {
+			field.set_is_ref(false);
+			quote! {
+			  if let Err(e) = <#field_type as AsyncValidateWithContext<#context_type>>::async_validate_with_context(&#reference, &context).await {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+				}
 			}
 		}
 	}

@@ -96,12 +96,25 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		let (field_type, _) = get_nested_type(input);
 		let context_type = self.context_type;
 
-		quote! {
-		  if let Err(e) = <#field_type as ValidateWithContext<#context_type>>::validate_with_context(&#reference, &context) {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
+		if field.is_ref() {
+			field.set_is_ref(true);
+			quote! {
+			  if let Err(e) = <#field_type as ValidateWithContext<#context_type>>::validate_with_context(#reference, &context) {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+				}
+			}
+		} else {
+			field.set_is_ref(false);
+			quote! {
+			  if let Err(e) = <#field_type as ValidateWithContext<#context_type>>::validate_with_context(&#reference, &context) {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+				}
 			}
 		}
 	}

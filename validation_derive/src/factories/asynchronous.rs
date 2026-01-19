@@ -82,13 +82,26 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		let field_name = field.get_name();
 		let (field_type, _) = get_nested_type(input);
 
-		quote! {
-		  if let Err(e) = <#field_type as AsyncValidate>::validate(&#reference).await {
-				errors.push(ValidationError::Node(NestedValidationError::from(
-					e,
-					#field_name,
-				)));
-		  }
+		if field.is_ref() {
+			field.set_is_ref(true);
+			quote! {
+			  if let Err(e) = <#field_type as AsyncValidate>::validate(#reference).await {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+			  }
+			}
+		} else {
+			field.set_is_ref(false);
+			quote! {
+			  if let Err(e) = <#field_type as AsyncValidate>::validate(&#reference).await {
+					errors.push(ValidationError::Node(NestedValidationError::from(
+						e,
+						#field_name,
+					)));
+			  }
+			}
 		}
 	}
 }

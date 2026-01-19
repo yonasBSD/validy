@@ -14,7 +14,15 @@ pub fn create_capitalize(field: &mut FieldAttributes, imports: &RefCell<ImportsS
 	field.increment_modifications();
 	let new_reference = field.get_reference();
 
-	quote! {
-		let mut #new_reference = capitalize_fn(&#reference);
+	if field.is_ref() {
+		field.set_is_ref(false);
+		quote! {
+			let mut #new_reference = capitalize_fn(#reference);
+		}
+	} else {
+		field.set_is_ref(false);
+		quote! {
+			let mut #new_reference = capitalize_fn(&#reference);
+		}
 	}
 }

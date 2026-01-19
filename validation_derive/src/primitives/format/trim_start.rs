@@ -8,6 +8,8 @@ pub fn create_trim_start(field: &mut FieldAttributes) -> TokenStream {
 	field.increment_modifications();
 	let new_reference = field.get_reference();
 
+	field.set_is_ref(false);
+
 	quote! {
 		let mut #new_reference = #reference.trim_start().to_string();
 	}

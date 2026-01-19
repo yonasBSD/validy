@@ -8,6 +8,8 @@ pub fn create_lowercase(field: &mut FieldAttributes) -> TokenStream {
 	field.increment_modifications();
 	let new_reference = field.get_reference();
 
+	field.set_is_ref(false);
+
 	quote! {
 		let mut #new_reference = #reference.to_lowercase();
 	}

@@ -60,10 +60,21 @@ pub fn create_async_custom_modification(
 
 	let extra_args = params.iter().flat_map(|p| &p.elems).map(|arg| quote! { #arg });
 
-	quote! {
-		let (mut #new_reference, error) = #function(&#reference, #field_name, #(#extra_args),*).await;
-		if let Some(error) = error {
-		  errors.push(error);
+	if field.is_ref() {
+		field.set_is_ref(false);
+		quote! {
+			let (mut #new_reference, error) = #function(#reference, #field_name, #(#extra_args),*).await;
+			if let Some(error) = error {
+			  errors.push(error);
+			}
+		}
+	} else {
+		field.set_is_ref(false);
+		quote! {
+			let (mut #new_reference, error) = #function(&#reference, #field_name, #(#extra_args),*).await;
+			if let Some(error) = error {
+			  errors.push(error);
+			}
 		}
 	}
 }

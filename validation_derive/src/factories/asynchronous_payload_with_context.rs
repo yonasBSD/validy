@@ -109,6 +109,8 @@ impl<'a> AbstractValidationFactory for AsyncPayloadWithContextFactory<'a> {
 			emit_error!(input.span(), "needs the wrapper type");
 		}
 
+		field.set_is_ref(false);
+
 		quote! {
 		  let mut #new_reference = #field_type::default();
 			let result = <#field_type as AsyncValidateAndParseWithContext<#wrapper_type, #context_type>>::async_validate_and_parse_with_context(#reference.clone(), context).await;

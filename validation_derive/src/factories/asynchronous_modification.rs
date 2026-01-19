@@ -87,6 +87,8 @@ impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
 		let field_name = field.get_name();
 		let (field_type, _) = get_nested_type(input);
 
+		field.set_is_ref(false);
+
 		quote! {
 		  let mut #new_reference = #reference.clone();
 		  if let Err(e) = <#field_type as AsyncValidateAndModificate>::async_validate_and_modificate(&mut #new_reference).await {

@@ -100,6 +100,8 @@ impl<'a> AbstractValidationFactory for ModificationWithContextFactory<'a> {
 		let (field_type, _) = get_nested_type(input);
 		let context_type = self.context_type;
 
+		field.set_is_ref(false);
+
 		quote! {
 		  let mut #new_reference = #reference.clone();
 		  if let Err(e) = <#field_type as ValidateAndModificateWithContext<#context_type>>::validate_and_modificate_with_context(&mut #new_reference, context) {

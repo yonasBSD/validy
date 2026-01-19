@@ -76,6 +76,7 @@ pub fn create_for_each(
 	let mut operations = Vec::<TokenStream>::new();
 	let reference = field.get_reference();
 	field.enter_scope();
+	field.set_is_ref(true);
 	let item_reference = field.get_reference();
 	let mut args = ForEachArgs::default();
 	let current_type = field.get_current_type().clone();

@@ -113,6 +113,8 @@ impl<'a> AbstractValidationFactory for PayloadWithContextFactory<'a> {
 			emit_error!(input.span(), "needs the wrapper type");
 		}
 
+		field.set_is_ref(false);
+
 		quote! {
 			let mut #new_reference = #field_type::default();
 			let result = <#field_type as ValidateAndParseWithContext<#wrapper_type, #context_type>>::validate_and_parse_with_context(#reference.clone(), context);

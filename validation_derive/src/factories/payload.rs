@@ -99,6 +99,8 @@ impl<'a> AbstractValidationFactory for PayloadFactory<'a> {
 			emit_error!(input.span(), "needs the wrapper type");
 		}
 
+		field.set_is_ref(false);
+
 		quote! {
 			let mut #new_reference = #field_type::default();
 			let result = <#field_type as ValidateAndParse<#wrapper_type>>::validate_and_parse(#reference.clone());
