@@ -1,2 +1,0 @@
-- mais testes
-- provavelmente o for_each vai estar bugado depois do que fiz

@@ -11,7 +11,7 @@ A powerful and flexible Rust library based on procedural macros for `validation`
 - [🔎 Validation Flow](#-validation-flow)
 - [🔌 Axum Integration](#-axum-integration)
 - [🧩 Manual Usage](#-manual-usage)
-  - [Available Traits](#available-traits)
+  - [Available traits](#available-traits)
 - [🚩 Feature Flags](#-feature-flags)
 - [🚧 Validation Rules](#-validation-rules)
   - [For `required` fields](#for-required-fields)
@@ -245,7 +245,7 @@ use validation::core::{Validate, AsyncValidate, ValidateAndParse};
 use validation::core::*;
 ```
 
-### Available Traits
+### Available traits
 
 | **Category** | **Traits** |
 | :-------- | :------- |
