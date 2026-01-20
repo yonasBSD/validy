@@ -36,14 +36,14 @@ A powerful and flexible Rust library based on procedural macros for `validation`
 Add with Cargo:
 
 ```
-cargo add validation --features axum, email
+cargo add validy --features axum, email
 ```
 
 Or add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-validation = { version = "1.0.0", features = ["axum", "email"] }
+validy = { version = "1.0.0", features = ["axum", "email"] }
 ```
 
 ## 🚀 Quick Start
