@@ -4,6 +4,7 @@ set -e
 mkdir -p temp
 mkdir -p temp/validations
 mkdir -p temp/modifications
+mkdir -p temp/axum
 
 cargo expand --all-features --test mod validations::allowlist >> temp/validations/allowlist.rs || true
 cargo expand --all-features --test mod validations::blocklist >> temp/validations/blocklist.rs || true
@@ -50,5 +51,13 @@ cargo expand --all-features --test mod modifications::train_case >> temp/modific
 cargo expand --all-features --test mod modifications::parse_naive_date >> temp/modifications/parse_naive_date.rs || true
 cargo expand --all-features --test mod modifications::parse_naive_time >> temp/modifications/parse_naive_time.rs || true
 cargo expand --all-features --test mod modifications::parse_time >> temp/modifications/parse_time.rs || true
+cargo expand --all-features --test mod modifications::inline >> temp/modifications/inline.rs || true
+cargo expand --all-features --test mod modifications::custom >> temp/modifications/custom.rs || true
+cargo expand --all-features --test mod modifications::custom_with_context >> temp/modifications/custom_with_context.rs || true
+cargo expand --all-features --test mod modifications::async_custom >> temp/modifications/async_custom.rs || true
+cargo expand --all-features --test mod modifications::async_custom_with_context >> temp/modifications/async_custom_with_context.rs || true
+
+cargo expand --all-features --test mod axum::mocks >> temp/axum/mocks.rs || true
+cargo expand --all-features --test mod axum::payload >> temp/axum/payload.rs || true
 
 cargo check --all-features --test mod

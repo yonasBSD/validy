@@ -64,7 +64,7 @@ impl FieldAttributes {
 
 	pub fn is_ref(&self) -> bool {
 		let operations_is_empty = self.operations.iter().all(|operation| operation.is_empty());
-		self.is_ref || (operations_is_empty && (self.is_payload() || self.is_option()))
+		self.is_ref || (operations_is_empty && self.scopes == 0 && (self.is_payload() || self.is_option()))
 	}
 
 	pub fn get_operations(&mut self) -> TokenStream {

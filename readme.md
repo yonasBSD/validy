@@ -2,6 +2,8 @@
 
 *But, also modification.*
 
+[![Status](https://github.com/L-Marcel/validation-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/L-Marcel/validation-rust/actions/workflows/ci.yml)
+
 A powerful and flexible Rust library based on procedural macros for `validation`, `modification`, and DTO (Data Transfer Object) handling. Designed to integrate seamlessly with `Axum`. Inspired by `Validator`, `Validify` and `Garde`.
 
 - [📝 Installation](#-installation)
@@ -82,13 +84,14 @@ pub struct CreateUserExampleDTO {
 
 	#[special(from_type(String))] // Id will be deserialized as Option<String>.
 	#[modify(lowercase)] // You can modify or validade as String, if has some.
-	#[modify(inline(|_| 0))] // You can parse to the final value type.
+	#[modify(inline(|_| 3))] // You can parse to the final value type.
 	#[validate(range(3..=12))] // And validade or modify again.
 	pub dependent_id: u16,
 
 	#[modify(trim)]
 	#[validate(length(0..=254, "tag must not be more than 254 characters"))]
 	#[modify(snake_case)]
+	#[modify(custom(modify_tag))]
 	pub tag: Option<String>, // Tag is really optional.
 	
 	#[special(from_type(RoleWrapper))] // Required to correctly define the wrapper field type.
@@ -103,10 +106,12 @@ pub struct CreateUserExampleDTO {
 #[derive(Debug, Deserialize, Default, Validate)]
 #[validate(payload)]
 pub struct Role {
+	#[special(from_type(Vec<String>))]
 	#[special(for_each( // You can validate or modify each item of collections.
-  	  config(from_item = u32, from_collection = Vec<String>, to_collection = Vec<u32>),
-  	  validate(inline(|_| true)), // Just a validation example.
-  	  modify(inline(|item| 0)) // Just another parse example.
+ 	  config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
+    modify(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))), // Just another parse example.
+    validate(inline(|x: &u32| *x > 1)), // Just a validation example.
+ 	  modify(inline(|x| x + 1))
 	))]
 	pub permissions: Vec<u32>,
 }
