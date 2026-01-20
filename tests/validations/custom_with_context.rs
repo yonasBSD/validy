@@ -1,10 +1,10 @@
 use serde::Deserialize;
-use validation::{
+use validy::{
 	core::{Validate, ValidateWithContext, ValidationError},
 	validation_error,
 };
 
-use validation::{assert_errors, assert_validation};
+use validy::{assert_errors, assert_validation};
 
 #[allow(unused)]
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]

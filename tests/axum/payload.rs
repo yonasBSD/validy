@@ -13,7 +13,7 @@ use std::sync::Arc;
 use tower::ServiceExt;
 
 use serde::{Deserialize, Serialize};
-use validation::core::{Validate, ValidationError};
+use validy::core::{Validate, ValidationError};
 
 use crate::axum::mocks::{MockedService, get_state};
 

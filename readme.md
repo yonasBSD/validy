@@ -2,7 +2,7 @@
 
 *But, also modification.*
 
-[![Status](https://github.com/L-Marcel/validation-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/L-Marcel/validation-rust/actions/workflows/ci.yml)
+[![Status](https://github.com/L-Marcel/validy/actions/workflows/ci.yml/badge.svg)](https://github.com/L-Marcel/validy/actions/workflows/ci.yml)
 
 A powerful and flexible Rust library based on procedural macros for `validation`, `modification`, and DTO (Data Transfer Object) handling. Designed to integrate seamlessly with `Axum`. Inspired by `Validator`, `Validify` and `Garde`.
 
@@ -56,7 +56,7 @@ use crate::core::{errors::Error, services::user::UserService};
 // You will use your own when need pass a context.
 use serde::Deserialize;
 use std::sync::Arc;
-use validation::core::{Validate, ValidationError};
+use validy::core::{Validate, ValidationError};
 
 #[derive(Debug, Deserialize, Validate)]
 #[validate(asynchronous, context = Arc<dyn UserService>, payload, axum)]
@@ -239,10 +239,10 @@ Yes, it's beautiful.
 The derive macros implement specific traits for your structs. To call methods like `.validate()`, `.async_validate()`, or `::validate_and_parse(...)`, you must import the corresponding traits into your scope.
 
 ```rust
-use validation::core::{Validate, AsyncValidate, ValidateAndParse};
+use validy::core::{Validate, AsyncValidate, ValidateAndParse};
 
 // Or just import the prelude
-use validation::core::*;
+use validy::core::*;
 ```
 
 ### Available traits

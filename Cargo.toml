@@ -1,10 +1,10 @@
 [package]
-name = "validation"
-version = "1.0.0"
+name = "validy"
+version = "1.1.0"
 edition = "2024"
 description = "A powerful and flexible Rust library based on procedural macros for validation, modification, and DTO (Data Transfer Object) handling. Designed to integrate seamlessly with Axum. Inspired by Validator, Validify and Garde."
 license = "MIT"
-repository = "https://github.com/L-Marcel/validation-rust"
+repository = "https://github.com/L-Marcel/validy"
 readme = "readme.md"
 keywords = ["validation", "axum", "derive", "input-validation", "macros"]
 categories = ["web-programming", "data-structures", "parsing"]
@@ -23,8 +23,8 @@ axum = { version = "0.8.8", optional = true }
 pretty_assertions = { version = "1.4.1", optional = true }
 
 [features]
-all = ["derive", "macro_rules", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
-default = ["derive", "macro_rules", "validation", "modification"]
+all = ["derive", "macro_rules", "validy", "modification", "email", "pattern", "ip", "time", "axum"]
+default = ["derive", "macro_rules", "validy", "modification"]
 macro_rules = []
 macro_rules_assertions = ["dep:pretty_assertions"]
 derive = ["dep:validation_derive", "dep:serde"]

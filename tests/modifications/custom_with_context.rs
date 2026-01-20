@@ -1,6 +1,6 @@
-use validation::core::{Validate, ValidateAndParseWithContext, ValidationError};
+use validy::core::{Validate, ValidateAndParseWithContext, ValidationError};
 
-use validation::{assert_errors, assert_parsed, validation_error};
+use validy::{assert_errors, assert_parsed, validation_error};
 
 #[allow(unused)]
 #[derive(Debug, Default, Validate, PartialEq)]

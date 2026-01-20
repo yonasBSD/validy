@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
 use syn::parse_str;
 
@@ -47,20 +47,20 @@ pub enum Import {
 }
 
 fn import_validation_functions(function: &str) -> TokenStream {
-	let found_crate = crate_name("validation").expect("validation is present in `Cargo.toml`");
+	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
 	let function_tokens: TokenStream = parse_str(function).expect("invalid validation path");
 
 	match found_crate {
-		FoundCrate::Itself => quote!(crate::functions::validation::#function_tokens),
+		FoundCrate::Itself => quote!(crate::functions::validy::#function_tokens),
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
-			quote!(#ident::functions::validation::#function_tokens)
+			quote!(#ident::functions::validy::#function_tokens)
 		}
 	}
 }
 
 fn import_modification_functions(function: &str) -> TokenStream {
-	let found_crate = crate_name("validation").expect("validation is present in `Cargo.toml`");
+	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
 	let function_tokens: TokenStream = parse_str(function).expect("invalid validation path");
 
 	match found_crate {
@@ -73,7 +73,7 @@ fn import_modification_functions(function: &str) -> TokenStream {
 }
 
 fn import_validation() -> TokenStream {
-	let found_crate = crate_name("validation").expect("validation is present in `Cargo.toml`");
+	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
 
 	match found_crate {
 		FoundCrate::Itself => quote!(crate::core::*),

@@ -1,7 +1,7 @@
 use serde::Deserialize;
-use validation::core::{Validate, ValidateAndModificate};
+use validy::core::{Validate, ValidateAndModificate};
 
-use validation::{assert_modification, assert_validation};
+use validy::{assert_modification, assert_validation};
 
 #[allow(unused)]
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]

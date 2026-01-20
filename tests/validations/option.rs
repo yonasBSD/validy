@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use validation::{
+use validy::{
 	assert_errors, assert_parsed,
 	core::{Validate, ValidateAndParse},
 	validation_errors,

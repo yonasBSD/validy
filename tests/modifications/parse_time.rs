@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset};
-use validation::core::{Validate, ValidateAndParse};
+use validy::core::{Validate, ValidateAndParse};
 
-use validation::{assert_errors, assert_parsed};
+use validy::{assert_errors, assert_parsed};
 
 #[allow(unused)]
 #[derive(Debug, Default, Validate, PartialEq)]

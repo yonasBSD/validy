@@ -18,7 +18,7 @@ use crate::{
 				async_custom_with_context::create_async_custom_with_context_modification,
 				custom::create_custom_modification, custom_with_context::create_custom_with_context_modification,
 			},
-			validation::{
+			validy::{
 				async_custom::create_async_custom, async_custom_with_context::create_async_custom_with_context,
 				custom::create_custom, custom_with_context::create_custom_with_context,
 			},
@@ -30,7 +30,7 @@ use crate::{
 			snake_case::create_snake_case, train_case::create_train_case, trim::create_trim, trim_end::create_trim_end,
 			trim_start::create_trim_start, uppercase::create_uppercase,
 		},
-		inlines::{inline_modification::create_inline_modification, inline_validation::create_inline_validation},
+		inlines::{inline_modification::create_inline_modification, inline_validy::create_inline_validation},
 		ips::{ip::create_ip, ipv4::create_ipv4, ipv6::create_ipv6},
 		option::required::create_required,
 		patterns::{
