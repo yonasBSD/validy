@@ -1,7 +1,6 @@
-use std::{
-	borrow::Cow,
-	sync::{Arc, OnceLock},
-};
+use std::sync::OnceLock;
+#[cfg(feature = "pattern")]
+use std::{borrow::Cow, sync::Arc};
 
 #[cfg(feature = "pattern")]
 use moka::sync::Cache;
