@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
+use proc_macro_crate::{FoundCrate, crate_name};
 use proc_macro2::{Ident, Span, TokenStream};
-use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
 use syn::parse_str;
 
@@ -54,7 +54,7 @@ fn import_validation_functions(function: &str) -> TokenStream {
 		FoundCrate::Itself => quote!(crate::functions::validy::#function_tokens),
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
-			quote!(#ident::functions::validy::#function_tokens)
+			quote!(#ident::functions::validation::#function_tokens)
 		}
 	}
 }
