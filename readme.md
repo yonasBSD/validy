@@ -262,7 +262,7 @@ Crate behavior can be adjusted in Cargo.toml.
 | :-------- | :------- | :------- |
 | `default` | `derive`, `validation`, `modification` | | 
 | `all` | Enables all features. | |
-| `derive` | Enables macro functionality. | `serde` |
+| `derive` | Enables macro functionality. | `serde`, `validation_derive` |
 | `validation` | Enables validation functions. Needed by almost all `derive` primitives validation rules. | |
 | `modification` | Enables modification functions. Needed by almost all `derive` primitives modification rules. | `heck` |
 | `email` | Enables `email` validation rule. | `email_address` |

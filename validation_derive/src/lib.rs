@@ -22,6 +22,8 @@ use syn::{DeriveInput, spanned::Spanned};
 /// **Struct options:** `#[validate(context = <?type>, modify = <?bool>, payload = <?bool>, asyncronous = <?bool>)]`
 /// * Configures global validation behavior, context injection, and serialization hooks.
 ///
+/// **Repository:** `https://github.com/L-Marcel/validy`
+///
 /// **Special attributes:**: `#[special(<rule>, ...)]`
 /// * `nested`: Validates the fields of a nested struct.
 /// * `for_each(config?(from_item = <?type>, to_collection = <?type>, from_collection = <?type>), <rule>)`: Applies validation rules to every element in a collection.
@@ -54,9 +56,13 @@ use syn::{DeriveInput, spanned::Spanned};
 /// *Date & Time:*
 /// * `time(format = <string>, message = <?string>, code = <?string>)`: Validates that the string matches the specified time/date format.
 /// * `naive_time(format = <string>, message = <?string>, code = <?string>)`: Validates that the string matches the specified naive time format.
+/// * `naive_date(format = <string>, message = <?string>, code = <?string>)`: Validates that the string matches the specified naive date format.
 /// * `after_now(accept_equals = <?bool>, message = <?string>, code = <?string>)`: Validates that the date/time is strictly after the current time.
 /// * `before_now(accept_equals = <?bool>, message = <?string>, code = <?string>)`: Validates that the date/time is strictly before the current time.
 /// * `now(ms_tolerance = <?int>, message = <?string>, code = <?string>)`: Validates that the date/time matches the current time within a tolerance (default: 500ms).
+/// * `after_today(accept_equals = <?bool>, message = <?string>, code = <?string>)`: Validates that the date is strictly after the current day.
+/// * `before_today(accept_equals = <?bool>, message = <?string>, code = <?string>)`: Validates that the date is strictly before the current day.
+/// * `today(message = <?string>, code = <?string>)`: Validates that the date matches the current day.
 ///
 /// *Custom:*
 /// * `inline(closure = <closure>, params = <?array>, message = <?string>, code = <?string>)`: Validates using a simple inline closure returning a boolean.
@@ -81,6 +87,11 @@ use syn::{DeriveInput, spanned::Spanned};
 /// * `kebab_case`: Converts the string to kebab-case.
 /// * `shouty_kebab_case`: Converts the string to SHOUTY-KEBAB-CASE.
 /// * `train_case`: Converts the string to Train-Case.
+///
+/// *Date & Time Parsing:*
+/// * `parse_time(format = <string>, message = <?string>, code = <?string>)`: Validates and parses that the string matches the specified time/date format.
+/// * `parse_naive_time(format = <string>, message = <?string>, code = <?string>)`: Validates and parses that the string matches the specified naive time format.
+/// * `parse_naive_date(format = <string>, message = <?string>, code = <?string>)`: Validates and parses that the string matches the specified naive date format.
 ///
 /// *Custom:*
 /// * `inline(closure = <closure>, params = <?array>)`: Modifies the value using an inline closure.
