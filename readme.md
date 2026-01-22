@@ -190,6 +190,7 @@ In contrast, no primitive `rule` is asynchronous, therefore the `asynchronous` c
 ## 🎯 Work In Progress
 
 - [] Typed multipart/form-data validation support.
+  - Maybe file validation rules too.
 
 ## 🔌 Axum Integration
 
