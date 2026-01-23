@@ -4,7 +4,7 @@ use crate::{
 	ImportsSet, Output,
 	attributes::ValidationAttributes,
 	factories::{
-		boilerplates::{commons::get_throw_errors_boilerplate, payloads::get_async_payload_factory_boilerplates},
+		boilerplates::{failure_mode::get_failure_mode_boilerplate, payloads::get_async_payload_factory_boilerplates},
 		core::AbstractValidationFactory,
 		extensions::payloads::get_async_payload_extensions,
 		utils::payloads::PayloadsCodeFactory,
@@ -35,7 +35,9 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 		attributes: &ValidationAttributes,
 		imports: &RefCell<ImportsSet>,
 	) -> Output {
-		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::ValidyCore);
+		imports.borrow_mut().add(Import::ValidySettings);
+		imports.borrow_mut().add(Import::ValidyHelpers);
 		imports.borrow_mut().add(Import::AsyncTrait);
 
 		let struct_name = self.struct_name;
@@ -49,7 +51,7 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 		let imports = imports.borrow().build();
 
 		let boilerplates = get_async_payload_factory_boilerplates(struct_name, &wrapper_ident);
-		let throw_errors = get_throw_errors_boilerplate();
+		let failure_mode = get_failure_mode_boilerplate(attributes);
 
 		#[rustfmt::skip]
 		let result = quote! {
@@ -61,14 +63,15 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
   			#[async_trait]
   			impl AsyncValidateAndParse<#wrapper_ident> for #struct_name {
          	async fn async_validate_and_parse(wrapper: &#wrapper_ident) -> Result<Self, ValidationErrors> {
-       			let mut errors = Vec::<ValidationError>::new();
+    				let mut errors = ValidationErrors::new();
+            let failure_mode = #failure_mode;
 
             #(#operations)*
 
             if errors.is_empty() {
               #commit
             } else {
-             	#throw_errors
+             	Err(errors)
             }
     		  }
    	    }
@@ -105,7 +108,7 @@ impl<'a> AbstractValidationFactory for AsyncPayloadFactory<'a> {
 
 		quote! {
 		  let mut #new_reference = #field_type::default();
-			let result = <#field_type as AsyncValidateAndParse<#wrapper_type>>::async_validate_and_parse(#reference.clone(), context).await;
+			let result = <#field_type as AsyncValidateAndParse<#wrapper_type>>::async_validate_and_parse(#reference.clone()).await;
 			match result {
 			  Ok(value) => #new_reference = value,
 				Err(e) =>  {

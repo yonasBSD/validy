@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use axum::{
 	Json, Router,
 	body::Body,
@@ -15,7 +14,7 @@ use tower::ServiceExt;
 use serde::{Deserialize, Serialize};
 use validy::core::{Validate, ValidationError};
 
-use crate::axum::mocks::{MockedService, get_state};
+use crate::axum::mocks::{ImplMockedService, MockedService, get_state};
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 #[validate(asynchronous, context = Arc<dyn MockedService>, payload, axum)]
@@ -56,6 +55,7 @@ pub struct TestDTO {
 #[validate(payload, axum)]
 pub struct RoleDTO {
 	#[special(from_type(Vec<String>))]
+	#[validate(length(1..=2))]
 	#[special(for_each(
  	  config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
     modify(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))),
@@ -63,6 +63,15 @@ pub struct RoleDTO {
  	  modify(inline(|x| x + 1))
 	))]
 	pub permissions: Vec<u32>,
+
+	#[special(from_type(Vec<String>))]
+	#[special(for_each(
+		 config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
+	   modify(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))),
+	   validate(inline(|x: &u32| *x > 1)),
+		 modify(inline(|x| x + 1))
+	))]
+	pub alt_permissions: Vec<u32>,
 }
 
 fn modify_tag(tag: &str, _field_name: &str) -> (String, Option<ValidationError>) {
@@ -97,14 +106,6 @@ pub async fn test_handle(
 
 pub async fn test_two_handle(data: RoleDTO) -> Result<impl IntoResponse, (StatusCode, String)> {
 	Ok((StatusCode::CREATED, Json(data)))
-}
-
-struct ImplMockedService {}
-#[async_trait]
-impl MockedService for ImplMockedService {
-	async fn email_exists(&self, email: &str) -> bool {
-		email == "test@gmail.com"
-	}
 }
 
 #[tokio::test]
@@ -146,7 +147,8 @@ async fn should_validate_requests() {
 				"dependent_id": "10",
 				"tag": "  My Super Tag  ",
 				"role": {
-					"permissions": ["2", "10"]
+					"permissions": ["2", "10"],
+					"alt_permissions": ["2"]
 				}
 			}),
 			json!({
@@ -156,7 +158,8 @@ async fn should_validate_requests() {
 				"dependent_id": 3,
 				"tag": "my_super_tag_modified",
 				"role": {
-					"permissions": [3, 11]
+					"permissions": [3, 11],
+					"alt_permissions": [3]
 				}
 			}),
 		),
@@ -189,7 +192,8 @@ async fn should_validate_requests() {
 				"password": "secure",
 				"dependent_id": "5",
 				"role": {
-					"permissions": ["0"]
+					"permissions": ["0"],
+					"alt_permissions": ["2"]
 				}
 			}),
 			json!({
@@ -208,17 +212,20 @@ async fn should_validate_requests() {
 			"/test_two",
 			StatusCode::CREATED,
 			json!({
-				"permissions": ["2", "10"]
+				"permissions": ["2", "10"],
+				"alt_permissions": ["2"]
 			}),
 			json!({
-				"permissions": [3, 11]
+				"permissions": [3, 11],
+				"alt_permissions": [2]
 			}),
 		),
 		(
 			"/test_two",
 			StatusCode::BAD_REQUEST,
 			json!({
-			  "permissions": ["0"]
+			  "permissions": ["0"],
+				"alt_permissions": ["2"]
 			}),
 			json!({
 			  "permissions": {

@@ -110,12 +110,13 @@ impl FieldAttributes {
 						#(#operations)*
 						#update
 					} else {
-					  errors.push(ValidationError::builder()
-								.with_field(#field_name)
-								.as_simple(#code)
-								.with_message(#message)
-								.build()
-								.into());
+					  let error = ValidationError::builder()
+							.with_field(#field_name)
+							.as_simple(#code)
+							.with_message(#message)
+							.build();
+
+						append_error(&mut errors, error.into(), failure_mode, #field_name);
 					}
 				}
 			}

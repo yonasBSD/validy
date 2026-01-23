@@ -77,7 +77,7 @@ pub fn create_for_each(
 	let reference = field.get_reference();
 	field.enter_scope();
 	let is_ref = field.is_ref();
-	field.set_is_ref(attributes.payload);
+	field.set_is_ref(true);
 
 	let item_reference = field.get_reference();
 	let mut args = ForEachArgs::default();
@@ -130,7 +130,7 @@ pub fn create_for_each(
 		let iterator_source = if is_ref {
 			quote! { ::std::mem::take(#reference) }
 		} else {
-			quote! { ::std::mem::take(&mut #reference) }
+			quote! { ::std::mem::take(&#reference) }
 		};
 
 		quote! {
@@ -148,15 +148,9 @@ pub fn create_for_each(
 		let new_reference = field.get_reference();
 		let to_collection = args.to_collection;
 
-		let iterator_source = if is_ref {
-			quote! { #reference.clone() }
-		} else {
-			quote! { #reference }
-		};
-
 		quote! {
 		  let mut #new_reference: #to_collection = Default::default();
-		  for #item_reference in #iterator_source.into_iter() {
+		  for #item_reference in #reference.into_iter() {
 				#(#operations)*
 
 				Extend::extend(
@@ -173,7 +167,7 @@ pub fn create_for_each(
 		};
 
 		quote! {
-			for #item_reference in #iterator_source {
+			for ref #item_reference in #iterator_source {
 				#(#operations)*
 		  }
 		}

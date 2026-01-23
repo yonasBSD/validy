@@ -1,21 +1,10 @@
-use std::{
-	borrow::Cow,
-	sync::{Arc, LazyLock},
-};
+use std::{borrow::Cow, sync::Arc};
 
-use moka::sync::Cache;
 use regex::{Error, Regex};
 
 use crate::settings::ValidationSettings;
 
-pub struct RegexManager {
-	cache: Cache<Cow<'static, str>, Arc<Regex>>,
-}
-
-static INSTANCE: LazyLock<RegexManager> = LazyLock::new(|| {
-	let cache = ValidationSettings::get().regex_cache.clone();
-	RegexManager { cache }
-});
+pub struct RegexManager {}
 
 impl RegexManager {
 	pub fn get_uncached(pattern: impl Into<Cow<'static, str>>) -> Result<Regex, Error> {
@@ -24,14 +13,14 @@ impl RegexManager {
 
 	pub fn get_or_create(pattern: impl Into<Cow<'static, str>>) -> Result<Arc<Regex>, Error> {
 		let key = pattern.into();
+		let cache = ValidationSettings::get_regex_cache();
 
-		if let Some(regex) = INSTANCE.cache.get(&key) {
+		if let Some(regex) = cache.get(&key) {
 			return Ok(regex.clone());
 		}
 
 		let key_for_regex = key.clone();
-		match INSTANCE
-			.cache
+		match cache
 			.entry(key)
 			.or_try_insert_with(|| Regex::new(&key_for_regex).map(Arc::new))
 		{
@@ -41,6 +30,6 @@ impl RegexManager {
 	}
 
 	pub fn remove(pattern: impl Into<Cow<'static, str>>) {
-		INSTANCE.cache.remove(&pattern.into());
+		ValidationSettings::get_regex_cache().remove(&pattern.into());
 	}
 }

@@ -5,7 +5,7 @@ use crate::{
 	attributes::ValidationAttributes,
 	factories::{
 		boilerplates::{
-			commons::get_throw_errors_boilerplate, modifications::get_async_modification_factory_boilerplates,
+			failure_mode::get_failure_mode_boilerplate, modifications::get_async_modification_factory_boilerplates,
 		},
 		core::AbstractValidationFactory,
 		extensions::modifications::get_async_modification_extensions,
@@ -36,7 +36,9 @@ impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
 		attributes: &ValidationAttributes,
 		imports: &RefCell<ImportsSet>,
 	) -> Output {
-		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::ValidyCore);
+		imports.borrow_mut().add(Import::ValidySettings);
+		imports.borrow_mut().add(Import::ValidyHelpers);
 		imports.borrow_mut().add(Import::AsyncTrait);
 
 		let struct_name = self.struct_name;
@@ -49,7 +51,7 @@ impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
 		let imports = imports.borrow().build();
 
 		let boilerplates = get_async_modification_factory_boilerplates(struct_name);
-		let throw_errors = get_throw_errors_boilerplate();
+		let failure_mode = get_failure_mode_boilerplate(attributes);
 
 		#[rustfmt::skip]
 		let result = quote! {
@@ -59,14 +61,15 @@ impl<'a> AbstractValidationFactory for AsyncModificationFactory<'a> {
   			#[async_trait]
   		  impl AsyncValidateAndModificate for #struct_name {
   			  async fn async_validate_and_modificate(&mut self) -> Result<(), ValidationErrors> {
-  					let mut errors = Vec::<ValidationError>::new();
+    				let mut errors = ValidationErrors::new();
+            let failure_mode = #failure_mode;
 
   				  #(#operations)*
 
   				  if errors.is_empty() {
   						#commit
   				  } else {
-  						#throw_errors
+      				Err(errors)
   				  }
   			  }
   		  }

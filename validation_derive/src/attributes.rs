@@ -1,7 +1,6 @@
-use proc_macro_error::emit_error;
-use syn::{DeriveInput, Error, Ident, LitBool, Result, Type, parse::ParseStream, spanned::Spanned};
-
 use crate::primitives::commons::{ArgParser, parse_attrs};
+use proc_macro_error::emit_error;
+use syn::{DeriveInput, Error, Expr, Ident, LitBool, Result, Type, parse::ParseStream, spanned::Spanned};
 
 #[derive(Default)]
 pub struct ValidationAttributes {
@@ -11,15 +10,28 @@ pub struct ValidationAttributes {
 	pub context: Option<Type>,
 	pub axum: bool,
 	pub multipart: bool,
+	pub failure_mode: Option<Expr>,
 }
 
 impl ArgParser for ValidationAttributes {
-	const POSITIONAL_KEYS: &'static [&'static str] =
-		&["context", "modify", "payload", "asynchronous", "axum", "multipart"];
+	const POSITIONAL_KEYS: &'static [&'static str] = &[
+		"context",
+		"modify",
+		"payload",
+		"asynchronous",
+		"axum",
+		"multipart",
+		"failure_mode",
+	];
 
 	fn apply_value(&mut self, name: &str, input: ParseStream) -> Result<()> {
 		match name {
 			"context" => self.context = Some(input.parse()?),
+			"failure_mode" => {
+				let failure_mode: Expr = input.parse()?;
+				validate_failure_mode(&input, &failure_mode);
+				self.failure_mode = Some(failure_mode);
+			}
 			"asynchronous" => {
 				let bool_lit: LitBool = input.parse()?;
 				self.asynchronous = bool_lit.value();
@@ -96,4 +108,34 @@ pub fn get_attributes(input: &DeriveInput) -> ValidationAttributes {
 	}
 
 	attributes
+}
+
+pub fn validate_failure_mode(input: &ParseStream, expr: &Expr) {
+	let path = match expr {
+		Expr::Path(expr_path) => &expr_path.path,
+		_ => {
+			emit_error!(input.span(), "Expects a FailureMode enum variant");
+			return;
+		}
+	};
+
+	let segments: Vec<_> = path.segments.iter().collect();
+
+	if segments.is_empty() {
+		emit_error!(input.span(), "Expects a FailureMode enum variant");
+		return;
+	}
+
+	let variant_ident = &segments.last().unwrap().ident;
+	let variant_str = variant_ident.to_string();
+
+	let valid_variants = ["FailFast", "FailOncePerField", "LastFailPerField", "FullFail"];
+	if !valid_variants.contains(&variant_str.as_str()) {
+		emit_error!(input.span(), "Unknown FailureMode enum variant");
+		return;
+	};
+
+	if segments.len() > 1 {
+		emit_error!(input.span(), "Too big path");
+	};
 }

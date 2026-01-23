@@ -64,7 +64,7 @@ impl NestedValidationErrorBuilder {
 	}
 
 	pub fn with_error(mut self, error: SimpleValidationError) -> NestedValidationErrorBuilder {
-		self.errors.insert(error.field.clone(), error.into());
+		self.errors.entry(error.field.clone()).or_default().push(error.into());
 		self
 	}
 

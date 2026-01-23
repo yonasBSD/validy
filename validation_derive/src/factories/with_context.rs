@@ -5,7 +5,7 @@ use crate::{
 	attributes::ValidationAttributes,
 	factories::{
 		boilerplates::{
-			commons::get_throw_errors_boilerplate, defaults::get_default_with_context_factory_boilerplates,
+			defaults::get_default_with_context_factory_boilerplates, failure_mode::get_failure_mode_boilerplate,
 		},
 		core::AbstractValidationFactory,
 		extensions::defaults::get_default_with_context_extensions,
@@ -40,7 +40,9 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		attributes: &ValidationAttributes,
 		imports: &RefCell<ImportsSet>,
 	) -> Output {
-		imports.borrow_mut().add(Import::ValidationCore);
+		imports.borrow_mut().add(Import::ValidyCore);
+		imports.borrow_mut().add(Import::ValidySettings);
+		imports.borrow_mut().add(Import::ValidyHelpers);
 		imports.borrow_mut().add(Import::AsyncTrait);
 
 		let struct_name = self.struct_name;
@@ -53,7 +55,7 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 		let imports = imports.borrow().build();
 
 		let boilerplates = get_default_with_context_factory_boilerplates(struct_name, context_type);
-		let throw_errors = get_throw_errors_boilerplate();
+		let failure_mode = get_failure_mode_boilerplate(attributes);
 
 		#[rustfmt::skip]
   	let result = quote! {
@@ -62,14 +64,15 @@ impl<'a> AbstractValidationFactory for ValidationWithContextFactory<'a> {
 
   		  impl ValidateWithContext<#context_type> for #struct_name {
   			  fn validate_with_context(&self, context: &#context_type) -> Result<(), ValidationErrors> {
-  					let mut errors = Vec::<ValidationError>::new();
+     				let mut errors = ValidationErrors::new();
+            let failure_mode = #failure_mode;
 
   				  #(#operations)*
 
   				  if errors.is_empty() {
   					  Ok(())
   				  } else {
-  						#throw_errors
+      				Err(errors)
   				  }
   			  }
   		  }

@@ -80,6 +80,16 @@ pub fn get_fields_attributes(
 			}
 		};
 
+		if attributes.modify {
+			let reference = field_attributes.get_reference();
+			field_attributes.increment_modifications();
+			let new_reference = field_attributes.get_reference();
+
+			field_attributes.add_operation(quote! {
+			  let mut #new_reference = #reference.clone();
+			});
+		};
+
 		for attr in &field.attrs {
 			if attr.path().is_ident("validate") {
 				let _ = attr.parse_nested_meta(|meta| {

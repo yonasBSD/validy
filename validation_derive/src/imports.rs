@@ -26,7 +26,9 @@ impl ImportsSet {
 				let import = match import {
 					Import::ValidationFunction(function) => import_validation_functions(function),
 					Import::ModificationFunction(function) => import_modification_functions(function),
-					Import::ValidationCore => import_validation(),
+					Import::ValidyCore => import_validy(),
+					Import::ValidySettings => import_validy_settings(),
+					Import::ValidyHelpers => import_validy_helpers(),
 					Import::AsyncTrait => import_async_trait(),
 				};
 
@@ -42,12 +44,14 @@ impl ImportsSet {
 pub enum Import {
 	ValidationFunction(&'static str),
 	ModificationFunction(&'static str),
-	ValidationCore,
+	ValidyCore,
+	ValidySettings,
+	ValidyHelpers,
 	AsyncTrait,
 }
 
 fn import_validation_functions(function: &str) -> TokenStream {
-	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
+	let found_crate = crate_name("validy").expect("validy is present in `Cargo.toml`");
 	let function_tokens: TokenStream = parse_str(function).expect("invalid validation path");
 
 	match found_crate {
@@ -60,7 +64,7 @@ fn import_validation_functions(function: &str) -> TokenStream {
 }
 
 fn import_modification_functions(function: &str) -> TokenStream {
-	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
+	let found_crate = crate_name("validy").expect("validy is present in `Cargo.toml`");
 	let function_tokens: TokenStream = parse_str(function).expect("invalid validation path");
 
 	match found_crate {
@@ -72,14 +76,38 @@ fn import_modification_functions(function: &str) -> TokenStream {
 	}
 }
 
-fn import_validation() -> TokenStream {
-	let found_crate = crate_name("validy").expect("validation is present in `Cargo.toml`");
+fn import_validy() -> TokenStream {
+	let found_crate = crate_name("validy").expect("validy is present in `Cargo.toml`");
 
 	match found_crate {
 		FoundCrate::Itself => quote!(crate::core::*),
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
 			quote!(#ident::core::*)
+		}
+	}
+}
+
+fn import_validy_settings() -> TokenStream {
+	let found_crate = crate_name("validy").expect("validy is present in `Cargo.toml`");
+
+	match found_crate {
+		FoundCrate::Itself => quote!(crate::core::*),
+		FoundCrate::Name(name) => {
+			let ident = Ident::new(&name, Span::call_site());
+			quote!(#ident::settings::*)
+		}
+	}
+}
+
+fn import_validy_helpers() -> TokenStream {
+	let found_crate = crate_name("validy").expect("validy is present in `Cargo.toml`");
+
+	match found_crate {
+		FoundCrate::Itself => quote!(crate::core::*),
+		FoundCrate::Name(name) => {
+			let ident = Ident::new(&name, Span::call_site());
+			quote!(#ident::utils::helpers::*)
 		}
 	}
 }

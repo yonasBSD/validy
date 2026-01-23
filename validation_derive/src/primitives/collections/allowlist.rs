@@ -80,18 +80,30 @@ pub fn create_allowlist(input: ParseStream, field: &mut FieldAttributes, imports
 
 	match mode {
 		Some(mode) if mode.value() == "SINGLE" => {
-			quote! {
-				if let Err(e) = validate_allowlist_fn([#reference.clone()], #items, #field_name, #code, #message) {
-				  errors.push(e);
+			#[rustfmt::skip]
+			let result = quote! {
+				if can_continue(&errors, failure_mode, #field_name) && let Err(e) = validate_allowlist_fn([#reference.clone()], #items, #field_name, #code, #message) {
+					append_error(&mut errors, e, failure_mode, #field_name);
+					if should_fail_fast(&errors, failure_mode, #field_name) {
+					  return Err(errors);
+					};
 			  }
-			}
+			};
+
+			result
 		}
 		Some(mode) if mode.value() == "COLLECTION" => {
-			quote! {
-				if let Err(e) = validate_allowlist_fn(#reference.clone(), #items, #field_name, #code, #message) {
-				  errors.push(e);
+			#[rustfmt::skip]
+			let result = quote! {
+				if can_continue(&errors, failure_mode, #field_name) && let Err(e) = validate_allowlist_fn(#reference.clone(), #items, #field_name, #code, #message) {
+			    append_error(&mut errors, e, failure_mode, #field_name);
+					if should_fail_fast(&errors, failure_mode, #field_name) {
+						return Err(errors);
+				  }
 			  }
-			}
+			};
+
+			result
 		}
 		Some(_) => {
 			emit_error!(input.span(), "available modes are SINGLE and COLLECTION");

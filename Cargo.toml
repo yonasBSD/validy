@@ -28,6 +28,7 @@ chrono = { version = "0.4.42", optional = true }
 axum = { version = "0.8.8", optional = true }
 pretty_assertions = { version = "1.4.1", optional = true }
 axum_typed_multipart = { version = "0.16.5", optional = true }
+parking_lot = "0.12.5"
 
 [features]
 all = ["derive", "macro_rules", "validation", "modification", "email", "pattern", "ip", "time", "axum"]

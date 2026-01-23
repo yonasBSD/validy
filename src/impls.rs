@@ -13,7 +13,7 @@ impl NestedValidationError {
 	}
 
 	pub fn new(field: impl Into<Cow<'static, str>>) -> Self {
-		let errors = HashMap::<Cow<'static, str>, ValidationError>::new();
+		let errors = HashMap::<Cow<'static, str>, Vec<ValidationError>>::new();
 
 		NestedValidationError {
 			field: field.into(),
@@ -23,14 +23,12 @@ impl NestedValidationError {
 	}
 
 	pub fn put(&mut self, error: ValidationError) {
-		match error {
-			ValidationError::Node(error) => {
-				self.errors.insert(error.field.clone(), error.into());
-			}
-			ValidationError::Leaf(error) => {
-				self.errors.insert(error.field.clone(), error.into());
-			}
-		}
+		let field = match &error {
+			ValidationError::Node(error) => error.field.clone(),
+			ValidationError::Leaf(error) => error.field.clone(),
+		};
+
+		self.errors.entry(field).or_default().push(error);
 	}
 }
 

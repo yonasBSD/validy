@@ -49,6 +49,9 @@ pub fn create_parse_naive_date(
 	imports: &RefCell<ImportsSet>,
 ) -> TokenStream {
 	imports.borrow_mut().add(Import::ModificationFunction(
+		"time::default_naive_date as default_naive_date_fn",
+	));
+	imports.borrow_mut().add(Import::ModificationFunction(
 		"time::parse_naive_date as parse_naive_date_fn",
 	));
 
@@ -72,19 +75,41 @@ pub fn create_parse_naive_date(
 
 	if field.is_ref() {
 		field.set_is_ref(false);
-		quote! {
-		  let (mut #new_reference, error) = parse_naive_date_fn(#reference, #format, #field_name, #code, #message);
-		  if let Some(error) = error {
-				errors.push(error);
+		#[rustfmt::skip]
+		let result = quote! {
+			let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
+			  parse_naive_date_fn(#reference, #format, #field_name, #code, #message)
+			} else {
+			  (default_naive_date_fn(), None)
+			};
+
+			if let Some(e) = error {
+				append_error(&mut errors, e, failure_mode, #field_name);
+				if should_fail_fast(&errors, failure_mode, #field_name) {
+				  return Err(errors);
+			  };
 		  }
-		}
+		};
+
+		result
 	} else {
 		field.set_is_ref(false);
-		quote! {
-		  let (mut #new_reference, error) = parse_naive_date_fn(&#reference, #format, #field_name, #code, #message);
-		  if let Some(error) = error {
-			  errors.push(error);
+		#[rustfmt::skip]
+		let result = quote! {
+  		let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
+  		  parse_naive_date_fn(&#reference, #format, #field_name, #code, #message)
+  		} else {
+  		  (default_naive_date_fn(), None)
+  		};
+
+			if let Some(e) = error {
+				append_error(&mut errors, e, failure_mode, #field_name);
+				if should_fail_fast(&errors, failure_mode, #field_name) {
+				  return Err(errors);
+			  };
 		  }
-		}
+		};
+
+		result
 	}
 }
