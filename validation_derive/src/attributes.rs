@@ -10,10 +10,12 @@ pub struct ValidationAttributes {
 	pub asynchronous: bool,
 	pub context: Option<Type>,
 	pub axum: bool,
+	pub multipart: bool,
 }
 
 impl ArgParser for ValidationAttributes {
-	const POSITIONAL_KEYS: &'static [&'static str] = &["context", "modify", "payload", "asynchronous", "axum"];
+	const POSITIONAL_KEYS: &'static [&'static str] =
+		&["context", "modify", "payload", "asynchronous", "axum", "multipart"];
 
 	fn apply_value(&mut self, name: &str, input: ParseStream) -> Result<()> {
 		match name {
@@ -34,6 +36,10 @@ impl ArgParser for ValidationAttributes {
 				let bool_lit: LitBool = input.parse()?;
 				self.axum = bool_lit.value();
 			}
+			"multipart" => {
+				let bool_lit: LitBool = input.parse()?;
+				self.multipart = bool_lit.value();
+			}
 			_ => return Err(Error::new(input.span(), "unknown arg")),
 		}
 
@@ -48,6 +54,7 @@ impl ArgParser for ValidationAttributes {
 				"modify" => self.modify = true,
 				"payload" => self.payload = true,
 				"axum" => self.axum = true,
+				"multipart" => self.multipart = true,
 				_ => return Err(Error::new(input.span(), "unknown arg")),
 			}
 
@@ -76,8 +83,16 @@ pub fn get_attributes(input: &DeriveInput) -> ValidationAttributes {
 		}
 	}
 
-	if attributes.axum && !cfg!(feature = "axum") {
-		emit_error!(input.span(), "Needs to enable axum flag");
+	match (
+		attributes.axum,
+		attributes.multipart,
+		cfg!(feature = "axum"),
+		cfg!(feature = "axum_multipart"),
+	) {
+		(true, _, false, _) => emit_error!(input.span(), "Needs to enable axum flag"),
+		(true, true, true, false) => emit_error!(input.span(), "Needs to enable axum_multipart flag"),
+		(false, true, true, true) => emit_error!(input.span(), "Needs to enable axum configuration attribute"),
+		_ => {}
 	}
 
 	attributes

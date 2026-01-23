@@ -85,7 +85,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		if field.is_ref() {
 			field.set_is_ref(true);
 			quote! {
-			  if let Err(e) = <#field_type as AsyncValidate>::validate(#reference).await {
+			  if let Err(e) = <#field_type as AsyncValidate>::async_validate(#reference).await {
 					errors.push(ValidationError::Node(NestedValidationError::from(
 						e,
 						#field_name,
@@ -95,7 +95,7 @@ impl<'a> AbstractValidationFactory for AsyncValidationFactory<'a> {
 		} else {
 			field.set_is_ref(false);
 			quote! {
-			  if let Err(e) = <#field_type as AsyncValidate>::validate(&#reference).await {
+			  if let Err(e) = <#field_type as AsyncValidate>::async_validate(&#reference).await {
 					errors.push(ValidationError::Node(NestedValidationError::from(
 						e,
 						#field_name,

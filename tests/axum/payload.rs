@@ -47,14 +47,14 @@ pub struct TestDTO {
 	#[modify(custom(modify_tag))]
 	pub tag: Option<String>,
 
-	#[special(from_type(RoleWrapper))]
-	#[special(nested(Role, RoleWrapper))]
-	pub role: Option<Role>,
+	#[special(from_type(RoleDTOWrapper))]
+	#[special(nested(RoleDTO, RoleDTOWrapper))]
+	pub role: Option<RoleDTO>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Validate)]
-#[validate(payload)]
-pub struct Role {
+#[validate(payload, axum)]
+pub struct RoleDTO {
 	#[special(from_type(Vec<String>))]
 	#[special(for_each(
  	  config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
@@ -95,6 +95,10 @@ pub async fn test_handle(
 	Ok((StatusCode::CREATED, Json(data)))
 }
 
+pub async fn test_two_handle(data: RoleDTO) -> Result<impl IntoResponse, (StatusCode, String)> {
+	Ok((StatusCode::CREATED, Json(data)))
+}
+
 struct ImplMockedService {}
 #[async_trait]
 impl MockedService for ImplMockedService {
@@ -108,10 +112,14 @@ async fn should_validate_requests() {
 	let service = Arc::new(ImplMockedService {});
 	let state = get_state(service).await;
 
-	let app = Router::new().route("/test", post(test_handle)).with_state(state);
+	let app = Router::new()
+		.route("/test", post(test_handle))
+		.route("/test_two", post(test_two_handle))
+		.with_state(state);
 
 	let cases = [
 		(
+			"/test",
 			StatusCode::CREATED,
 			json!({
 				"name": "  Alice  ",
@@ -129,6 +137,7 @@ async fn should_validate_requests() {
 			}),
 		),
 		(
+			"/test",
 			StatusCode::CREATED,
 			json!({
 				"name": "Bob",
@@ -152,6 +161,7 @@ async fn should_validate_requests() {
 			}),
 		),
 		(
+			"/test",
 			StatusCode::BAD_REQUEST,
 			json!({
 				"name": "Charlie",
@@ -171,6 +181,7 @@ async fn should_validate_requests() {
 			}),
 		),
 		(
+			"/test",
 			StatusCode::BAD_REQUEST,
 			json!({
 				"name": "Dave",
@@ -193,12 +204,35 @@ async fn should_validate_requests() {
 				}
 			}),
 		),
+		(
+			"/test_two",
+			StatusCode::CREATED,
+			json!({
+				"permissions": ["2", "10"]
+			}),
+			json!({
+				"permissions": [3, 11]
+			}),
+		),
+		(
+			"/test_two",
+			StatusCode::BAD_REQUEST,
+			json!({
+			  "permissions": ["0"]
+			}),
+			json!({
+			  "permissions": {
+				  "code": "inline",
+				  "message": "invalid"
+			  }
+			}),
+		),
 	];
 
-	for (expected_status, case, expected) in cases.iter() {
+	for (route, expected_status, case, expected) in cases.iter() {
 		let req = Request::builder()
 			.method(Method::POST)
-			.uri("/test")
+			.uri(*route)
 			.header(header::CONTENT_TYPE, "application/json")
 			.body(Body::from(case.to_string()))
 			.expect("should create a request");

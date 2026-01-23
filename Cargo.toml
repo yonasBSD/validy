@@ -27,6 +27,7 @@ heck = { version = "0.5.0", optional = true }
 chrono = { version = "0.4.42", optional = true }
 axum = { version = "0.8.8", optional = true }
 pretty_assertions = { version = "1.4.1", optional = true }
+axum_typed_multipart = { version = "0.16.5", optional = true }
 
 [features]
 all = ["derive", "macro_rules", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
@@ -41,6 +42,7 @@ pattern = ["dep:moka", "dep:regex"]
 ip = []
 time = ["dep:chrono"]
 axum = ["dep:axum", "derive", "validation_derive/axum"]
+axum_multipart = ["axum", "dep:axum_typed_multipart", "validation_derive/axum_multipart"]
 
 [dev-dependencies]
 http-body-util = "0.1.3"

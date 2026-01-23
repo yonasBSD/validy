@@ -76,7 +76,9 @@ pub fn create_for_each(
 	let mut operations = Vec::<TokenStream>::new();
 	let reference = field.get_reference();
 	field.enter_scope();
-	field.set_is_ref(true);
+	let is_ref = field.is_ref();
+	field.set_is_ref(attributes.payload);
+
 	let item_reference = field.get_reference();
 	let mut args = ForEachArgs::default();
 	let current_type = field.get_current_type().clone();
@@ -120,13 +122,41 @@ pub fn create_for_each(
 	let final_item_reference = field.get_reference();
 	field.exit_scope();
 	field.increment_modifications();
-	let new_reference = field.get_reference();
-	let to_collection = args.to_collection;
 
 	if attributes.modify && !attributes.payload {
+		let new_reference = field.get_reference();
+		let to_collection = args.to_collection;
+
+		let iterator_source = if is_ref {
+			quote! { ::std::mem::take(#reference) }
+		} else {
+			quote! { ::std::mem::take(&mut #reference) }
+		};
+
 		quote! {
 		  let mut #new_reference: #to_collection = Default::default();
-		  for #item_reference in ::std::mem::take(&mut #reference).into_iter() {
+		  for #item_reference in #iterator_source.into_iter() {
+				#(#operations)*
+
+				Extend::extend(
+					&mut #new_reference,
+					::std::iter::once(#final_item_reference.clone())
+				);
+		  }
+		}
+	} else if attributes.payload {
+		let new_reference = field.get_reference();
+		let to_collection = args.to_collection;
+
+		let iterator_source = if is_ref {
+			quote! { #reference.clone() }
+		} else {
+			quote! { #reference }
+		};
+
+		quote! {
+		  let mut #new_reference: #to_collection = Default::default();
+		  for #item_reference in #iterator_source.into_iter() {
 				#(#operations)*
 
 				Extend::extend(
@@ -136,15 +166,15 @@ pub fn create_for_each(
 		  }
 		}
 	} else {
-		quote! {
-		  let mut #new_reference: #to_collection = Default::default();
-		  for #item_reference in #reference.into_iter() {
-				#(#operations)*
+		let iterator_source = if is_ref {
+			quote! { #reference }
+		} else {
+			quote! { &#reference }
+		};
 
-				Extend::extend(
-					&mut #new_reference,
-					::std::iter::once(#final_item_reference.clone())
-				);
+		quote! {
+			for #item_reference in #iterator_source {
+				#(#operations)*
 		  }
 		}
 	}
