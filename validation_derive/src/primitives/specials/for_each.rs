@@ -123,15 +123,29 @@ pub fn create_for_each(
 	let new_reference = field.get_reference();
 	let to_collection = args.to_collection;
 
-	quote! {
-	  let mut #new_reference: #to_collection = Default::default();
-	  for #item_reference in #reference.into_iter() {
-			#(#operations)*
+	if attributes.modify && !attributes.payload {
+		quote! {
+		  let mut #new_reference: #to_collection = Default::default();
+		  for #item_reference in ::std::mem::take(&mut #reference).into_iter() {
+				#(#operations)*
 
-			Extend::extend(
-				&mut #new_reference,
-				::std::iter::once(#final_item_reference.clone())
-			);
-	  }
+				Extend::extend(
+					&mut #new_reference,
+					::std::iter::once(#final_item_reference.clone())
+				);
+		  }
+		}
+	} else {
+		quote! {
+		  let mut #new_reference: #to_collection = Default::default();
+		  for #item_reference in #reference.into_iter() {
+				#(#operations)*
+
+				Extend::extend(
+					&mut #new_reference,
+					::std::iter::once(#final_item_reference.clone())
+				);
+		  }
+		}
 	}
 }
