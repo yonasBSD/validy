@@ -197,13 +197,13 @@ In contrast, no primitive `rule` is asynchronous, therefore the `asynchronous` c
 
 Some of these features are available now, but are just partially finished. So I will document only after finished then.
 
-- [] More test coverage.
-- [] Failure mode.
+- [ ] More test coverage.
+- [ ] Failure mode.
   - Now the default is `FailOncePerField` (covered by the tests).
-- [] Typed multipart/form-data validation support.
-  - [] file validation rules too (maybe).
-- [] Validation rules for uuid.
-- [] Validation rules for decimal (maybe).
+- [ ] Typed multipart/form-data validation support.
+  - [ ] file validation rules too (maybe).
+- [ ] Validation rules for uuid.
+- [ ] Validation rules for decimal (maybe).
 
 ## 🔌 Axum Integration
 
