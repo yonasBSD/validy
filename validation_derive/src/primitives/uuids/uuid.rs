@@ -43,7 +43,7 @@ impl ArgParser for UuidArgs {
 pub fn create_uuid(input: ParseStream, field: &mut FieldAttributes, imports: &RefCell<ImportsSet>) -> TokenStream {
 	imports
 		.borrow_mut()
-		.add(Import::ValidationFunction("uuids::validate_uuid as validate_uuid_fn"));
+		.add(Import::ValidationFunction("uuid::validate_uuid as validate_uuid_fn"));
 
 	let field_name = field.get_name();
 	let reference = field.get_reference();

@@ -26,3 +26,4 @@ pub mod suffix;
 pub mod time;
 pub mod today;
 pub mod url;
+pub mod uuid;

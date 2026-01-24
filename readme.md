@@ -204,7 +204,7 @@ Some of these features are available now, but are just partially finished. So I 
   - Now the default is `FailOncePerField` (covered by the tests).
 - [ ] Typed multipart/form-data validation support.
   - [ ] file validation rules too (maybe).
-- [ ] Validation rules for uuid.
+- [x] Validation rules for uuid.
 - [ ] Validation rules for decimal (maybe).
 - [ ] Better macro documentation.
 
@@ -296,6 +296,7 @@ Crate behavior can be adjusted in Cargo.toml.
 | `derive` | Enables macro functionality. | `serde`, `validation_derive` |
 | `validation` | Enables validation functions. Needed by almost all `derive` primitives validation rules. | |
 | `modification` | Enables modification functions. Needed by almost all `derive` primitives modification rules. | `heck` |
+| `uuid` | Enables `uuid` validation rules. | `uuid` |
 | `email` | Enables `email` validation rule. | `email_address` |
 | `pattern` | Enables `pattern` and `url` validation rules. Uses `moka` to cache `regex`. Cache can be configured calling `ValidationSettings::init(...)`. | `moka`, `regex` | 
 | `ip` | Enables `ipI'm a busy and currently not very successful graduate student, so don't expect too much from me in terms of maintenance. But I did my best.` validation rule. | |

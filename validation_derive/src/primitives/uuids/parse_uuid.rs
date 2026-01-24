@@ -47,10 +47,10 @@ pub fn create_parse_uuid(
 ) -> TokenStream {
 	imports
 		.borrow_mut()
-		.add(Import::ModificationFunction("uuids::default_uuid as default_uuid_fn"));
+		.add(Import::ModificationFunction("uuid::default_uuid as default_uuid_fn"));
 	imports
 		.borrow_mut()
-		.add(Import::ModificationFunction("uuids::parse_uuid as parse_uuid_fn"));
+		.add(Import::ModificationFunction("uuid::parse_uuid as parse_uuid_fn"));
 
 	let field_name = field.get_name();
 	let reference = field.get_reference();
