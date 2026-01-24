@@ -34,7 +34,8 @@ uuid = { version = "1.19.0", optional = true }
 [features]
 all = [
   "derive", "macro_rules", "macro_rules_assertions", "validation",
-  "modification", "email", "pattern", "ip", "time", "axum", "axum_multipart"
+  "modification", "email", "pattern", "ip", "time", "axum", "axum_multipart",
+  "uuid_v1", "uuid_v3", "uuid_v4", "uuid_v5", "uuid_v6", "uuid_v7", "uuid_v8"
 ]
 default = ["derive", "macro_rules", "validation", "modification"]
 macro_rules = []
