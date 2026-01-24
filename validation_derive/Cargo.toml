@@ -1,6 +1,6 @@
 [package]
 name = "validation_derive"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2024"
 description = "Secundary Crate for macros."
 license = "MIT"
@@ -23,3 +23,4 @@ regex = "1.12.2"
 [features]
 default = []
 axum = []
+axum_multipart = []

@@ -7,7 +7,7 @@ pub use validation_derive::*;
 
 #[cfg(feature = "modification")]
 pub type ModificationResult<T> = (T, Option<ValidationError>);
-pub type ValidationErrors = HashMap<Cow<'static, str>, ValidationError>;
+pub type ValidationErrors = HashMap<Cow<'static, str>, Vec<ValidationError>>;
 
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]

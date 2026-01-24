@@ -6,7 +6,7 @@ members = [
 
 [package]
 name = "validy"
-version = "1.1.7"
+version = "1.1.8"
 edition = "2024"
 description = "A powerful and flexible Rust library based on procedural macros for validation, modification, and DTO (Data Transfer Object) handling. Designed to integrate seamlessly with Axum. Inspired by Validator, Validify and Garde."
 license = "MIT"
@@ -17,7 +17,7 @@ categories = ["web-programming", "data-structures", "parsing"]
 exclude = [".github/", ".gitignore", "expand.sh", "tests/"]
 
 [dependencies]
-validation_derive = { path = "validation_derive", version = "1.1.1", optional = true }
+validation_derive = { path = "validation_derive", version = "1.1.2", optional = true }
 email_address = { version = "0.2.9", optional = true }
 serde = { version = "1.0.228", features = ["derive"], optional = true }
 async-trait = "0.1.89"
@@ -27,6 +27,8 @@ heck = { version = "0.5.0", optional = true }
 chrono = { version = "0.4.42", optional = true }
 axum = { version = "0.8.8", optional = true }
 pretty_assertions = { version = "1.4.1", optional = true }
+axum_typed_multipart = { version = "0.16.5", optional = true }
+parking_lot = "0.12.5"
 
 [features]
 all = ["derive", "macro_rules", "validation", "modification", "email", "pattern", "ip", "time", "axum"]
@@ -41,6 +43,7 @@ pattern = ["dep:moka", "dep:regex"]
 ip = []
 time = ["dep:chrono"]
 axum = ["dep:axum", "derive", "validation_derive/axum"]
+axum_multipart = ["axum", "dep:axum_typed_multipart", "validation_derive/axum_multipart"]
 
 [dev-dependencies]
 http-body-util = "0.1.3"

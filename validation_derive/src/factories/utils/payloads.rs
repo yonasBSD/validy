@@ -53,27 +53,23 @@ impl<'a> PayloadsCodeFactory<'a> {
 					  #field_name: #reference,
 					}
 				} else {
-					quote! {
-					  #field_name: #reference.ok_or_else(|| {
+					#[rustfmt::skip]
+					let result = quote! {
+						#field_name: #reference.ok_or_else(|| {
 						  let error = ValidationError::builder()
 							  .with_field(#name)
 							  .as_simple("unreachable")
 							  .with_message("field missing after successful required validation check")
 							  .build();
 
-						  let errors: Vec<ValidationError> = vec![error.into()];
+							let mut errors = ValidationErrors::new();
+							append_error(&mut errors, error.into(), failure_mode, #name);
 
-						  let map: ValidationErrors = errors
-							  .into_iter()
-							  .map(|e| match e {
-								  ValidationError::Node(e) => (e.field.clone().into(), ValidationError::Node(e)),
-								  ValidationError::Leaf(e) => (e.field.clone().into(), ValidationError::Leaf(e)),
-							  })
-							  .collect();
-
-						  map
+							errors
 						})?,
-					}
+					};
+
+					result
 				}
 			})
 			.collect();

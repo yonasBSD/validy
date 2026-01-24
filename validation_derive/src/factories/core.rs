@@ -39,8 +39,8 @@ pub fn get_factory<'a>(
 	) {
 		(Some(context), true, false, false) => Box::new(AsyncValidationWithContextFactory::new(name, context)),
 		(Some(context), false, false, false) => Box::new(ValidationWithContextFactory::new(name, context)),
-		(Some(context), false, true, false) => Box::new(AsyncModificationWithContextFactory::new(name, context)),
-		(Some(context), true, true, false) => Box::new(ModificationWithContextFactory::new(name, context)),
+		(Some(context), true, true, false) => Box::new(AsyncModificationWithContextFactory::new(name, context)),
+		(Some(context), false, true, false) => Box::new(ModificationWithContextFactory::new(name, context)),
 		(Some(context), true, _, true) => Box::new(AsyncPayloadWithContextFactory::new(name, context)),
 		(Some(context), false, _, true) => Box::new(PayloadWithContextFactory::new(name, context)),
 		(None, true, _, true) => Box::new(AsyncPayloadFactory::new(name)),

@@ -2,6 +2,10 @@ use crate::core::ValidationError;
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, Utc};
 use std::borrow::Cow;
 
+pub fn default_naive_time() -> NaiveDateTime {
+	Utc::now().naive_utc()
+}
+
 pub fn parse_naive_time(
 	value: &str,
 	format: &str,
@@ -28,6 +32,10 @@ pub fn parse_naive_time(
 	}
 }
 
+pub fn default_time() -> DateTime<FixedOffset> {
+	Utc::now().into()
+}
+
 pub fn parse_time(
 	value: &str,
 	format: &str,
@@ -52,6 +60,10 @@ pub fn parse_time(
 			),
 		)
 	}
+}
+
+pub fn default_naive_date() -> NaiveDate {
+	Utc::now().date_naive()
 }
 
 pub fn parse_naive_date(

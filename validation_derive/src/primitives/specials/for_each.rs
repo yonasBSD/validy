@@ -76,11 +76,23 @@ pub fn create_for_each(
 	let mut operations = Vec::<TokenStream>::new();
 	let reference = field.get_reference();
 	field.enter_scope();
+	let is_ref = field.is_ref();
 	field.set_is_ref(true);
+
 	let item_reference = field.get_reference();
 	let mut args = ForEachArgs::default();
 	let current_type = field.get_current_type().clone();
 	args.update_from_type(&current_type, field);
+
+	if attributes.modify {
+		field.increment_modifications();
+		let new_reference = field.get_reference();
+		field.set_is_ref(false);
+
+		operations.push(quote! {
+		  let mut #new_reference = #item_reference.clone();
+		});
+	};
 
 	let _ = meta.parse_nested_meta(|meta| {
 		if meta.path.is_ident("config") {
@@ -120,18 +132,63 @@ pub fn create_for_each(
 	let final_item_reference = field.get_reference();
 	field.exit_scope();
 	field.increment_modifications();
-	let new_reference = field.get_reference();
-	let to_collection = args.to_collection;
 
-	quote! {
-	  let mut #new_reference: #to_collection = Default::default();
-	  for #item_reference in #reference.into_iter() {
-			#(#operations)*
+	if attributes.modify && !attributes.payload {
+		let new_reference = field.get_reference();
+		let to_collection = args.to_collection;
 
-			Extend::extend(
-				&mut #new_reference,
-				::std::iter::once(#final_item_reference.clone())
-			);
-	  }
+		let iterator_source = if is_ref {
+			quote! { ::std::mem::take(#reference) }
+		} else {
+			quote! { ::std::mem::take(&#reference) }
+		};
+
+		#[rustfmt::skip]
+		let result = quote! {
+		  let mut #new_reference: #to_collection = Default::default();
+		  for #item_reference in #iterator_source.into_iter() {
+				#(#operations)*
+
+				Extend::extend(
+					&mut #new_reference,
+					::std::iter::once(#final_item_reference.clone())
+				);
+		  }
+		};
+
+		result
+	} else if attributes.payload {
+		let new_reference = field.get_reference();
+		let to_collection = args.to_collection;
+
+		#[rustfmt::skip]
+		let result = quote! {
+		  let mut #new_reference: #to_collection = Default::default();
+		  for #item_reference in #reference.into_iter() {
+				#(#operations)*
+
+				Extend::extend(
+					&mut #new_reference,
+					::std::iter::once(#final_item_reference.clone())
+				);
+		  }
+		};
+
+		result
+	} else {
+		let iterator_source = if is_ref {
+			quote! { #reference }
+		} else {
+			quote! { &#reference }
+		};
+
+		#[rustfmt::skip]
+		let result = quote! {
+			for ref #item_reference in #iterator_source {
+				#(#operations)*
+		  }
+		};
+
+		result
 	}
 }

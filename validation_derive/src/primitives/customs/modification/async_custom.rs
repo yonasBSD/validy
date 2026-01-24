@@ -62,19 +62,41 @@ pub fn create_async_custom_modification(
 
 	if field.is_ref() {
 		field.set_is_ref(false);
-		quote! {
-			let (mut #new_reference, error) = #function(#reference, #field_name, #(#extra_args),*).await;
-			if let Some(error) = error {
-			  errors.push(error);
+		#[rustfmt::skip]
+		let result = quote! {
+			let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
+			  #function(#reference, #field_name, #(#extra_args),*).await
+			} else {
+			  (Default::default(), None)
+			};
+
+			if let Some(e) = error {
+			  append_error(&mut errors, e, failure_mode, #field_name);
+			  if should_fail_fast(&errors, failure_mode, #field_name) {
+				  return Err(errors);
+				};
 			}
-		}
+		};
+
+		result
 	} else {
 		field.set_is_ref(false);
-		quote! {
-			let (mut #new_reference, error) = #function(&#reference, #field_name, #(#extra_args),*).await;
-			if let Some(error) = error {
-			  errors.push(error);
-			}
-		}
+		#[rustfmt::skip]
+		let result = quote! {
+		  let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
+				#function(&#reference, #field_name, #(#extra_args),*).await
+		  } else {
+				(Default::default(), None)
+		  };
+
+		  if let Some(e) = error {
+				append_error(&mut errors, e, failure_mode, #field_name);
+				if should_fail_fast(&errors, failure_mode, #field_name) {
+				  return Err(errors);
+			  };
+		  }
+		};
+
+		result
 	}
 }

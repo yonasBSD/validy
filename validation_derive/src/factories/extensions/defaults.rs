@@ -8,7 +8,8 @@ use crate::{
 	ImportsSet,
 	attributes::ValidationAttributes,
 	factories::extensions::axum::defaults::{
-		get_async_default_axum_extension, get_async_default_with_context_axum_extension,
+		get_async_default_axum_extension, get_async_default_axum_multipart_extension,
+		get_async_default_with_context_axum_extension, get_async_default_with_context_axum_multipart_extension,
 	},
 };
 
@@ -17,7 +18,19 @@ pub fn get_default_extensions(
 	attributes: &ValidationAttributes,
 	_: &RefCell<ImportsSet>,
 ) -> TokenStream {
-	let extensions = vec![get_async_default_axum_extension(struct_name, attributes)];
+	let mut extensions = vec![];
+
+	match (
+		attributes.axum,
+		attributes.multipart,
+		cfg!(feature = "axum"),
+		cfg!(feature = "axum_multipart"),
+	) {
+		(true, false, true, _) => extensions.push(get_async_default_axum_extension(struct_name)),
+		(true, true, true, true) => extensions.push(get_async_default_axum_multipart_extension(struct_name)),
+		_ => {}
+	}
+
 	quote! { #(#extensions)* }
 }
 
@@ -27,7 +40,21 @@ pub fn get_default_with_context_extensions(
 	_: &Type,
 	_: &RefCell<ImportsSet>,
 ) -> TokenStream {
-	let extensions = vec![get_async_default_with_context_axum_extension(struct_name, attributes)];
+	let mut extensions = vec![];
+
+	match (
+		attributes.axum,
+		attributes.multipart,
+		cfg!(feature = "axum"),
+		cfg!(feature = "axum_multipart"),
+	) {
+		(true, false, true, _) => extensions.push(get_async_default_with_context_axum_extension(struct_name)),
+		(true, true, true, true) => {
+			extensions.push(get_async_default_with_context_axum_multipart_extension(struct_name))
+		}
+		_ => {}
+	}
+
 	quote! { #(#extensions)* }
 }
 
@@ -36,7 +63,19 @@ pub fn get_async_default_extensions(
 	attributes: &ValidationAttributes,
 	_: &RefCell<ImportsSet>,
 ) -> TokenStream {
-	let extensions = vec![get_async_default_axum_extension(struct_name, attributes)];
+	let mut extensions = vec![];
+
+	match (
+		attributes.axum,
+		attributes.multipart,
+		cfg!(feature = "axum"),
+		cfg!(feature = "axum_multipart"),
+	) {
+		(true, false, true, _) => extensions.push(get_async_default_axum_extension(struct_name)),
+		(true, true, true, true) => extensions.push(get_async_default_axum_multipart_extension(struct_name)),
+		_ => {}
+	}
+
 	quote! { #(#extensions)* }
 }
 
@@ -46,6 +85,20 @@ pub fn get_async_default_with_context_extensions(
 	_: &Type,
 	_: &RefCell<ImportsSet>,
 ) -> TokenStream {
-	let extensions = vec![get_async_default_with_context_axum_extension(struct_name, attributes)];
+	let mut extensions = vec![];
+
+	match (
+		attributes.axum,
+		attributes.multipart,
+		cfg!(feature = "axum"),
+		cfg!(feature = "axum_multipart"),
+	) {
+		(true, false, true, _) => extensions.push(get_async_default_with_context_axum_extension(struct_name)),
+		(true, true, true, true) => {
+			extensions.push(get_async_default_with_context_axum_multipart_extension(struct_name))
+		}
+		_ => {}
+	}
+
 	quote! { #(#extensions)* }
 }
