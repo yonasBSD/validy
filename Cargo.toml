@@ -35,7 +35,7 @@ uuid = { version = "1.19.0", optional = true }
 all = [
   "derive", "macro_rules", "macro_rules_assertions", "validation",
   "modification", "email", "pattern", "ip", "time", "axum", "axum_multipart",
-  "uuid_v1", "uuid_v3", "uuid_v4", "uuid_v5", "uuid_v6", "uuid_v7", "uuid_v8"
+  "uuid"
 ]
 default = ["derive", "macro_rules", "validation", "modification"]
 macro_rules = []
@@ -47,13 +47,7 @@ email = ["dep:email_address"]
 pattern = ["dep:moka", "dep:regex"]
 ip = []
 time = ["dep:chrono"]
-uuid_v1 = ["dep:uuid", "uuid/v1"]
-uuid_v3 = ["dep:uuid", "uuid/v3"]
-uuid_v4 = ["dep:uuid", "uuid/v4"]
-uuid_v5 = ["dep:uuid", "uuid/v5"]
-uuid_v6 = ["dep:uuid", "uuid/v6"]
-uuid_v7 = ["dep:uuid", "uuid/v7"]
-uuid_v8 = ["dep:uuid", "uuid/v8"]
+uuid = ["dep:uuid"]
 axum = ["dep:axum", "derive", "validation_derive/axum"]
 axum_multipart = ["axum", "dep:axum_typed_multipart", "validation_derive/axum_multipart"]
 
