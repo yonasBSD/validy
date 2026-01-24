@@ -12,6 +12,7 @@ A powerful and flexible Rust library based on procedural macros for `validation`
   - [Implementations](#implementations)
 - [🎯 Work In Progress](#-work-in-progress)
 - [🔌 Axum Integration](#-axum-integration)
+  - [Custom status code](#custom-status-code)
 - [🧩 Manual Usage](#-manual-usage)
   - [Available traits](#available-traits)
 - [🚩 Feature Flags](#-feature-flags)
@@ -253,6 +254,15 @@ pub async fn create_user(
 
 Yes, it's beautiful.
 
+### Custom status code
+
+You can change the status code returned in case of failure:
+
+```rust
+ValidationSettings::set_failure_status_code(StatusCode::BAD_REQUEST);
+```
+
+This method is `thread-safe`. The default is `BAD_REQUEST`.
 
 ## 🧩 Manual Usage
 
