@@ -25,7 +25,7 @@ pub fn get_async_modification_axum_extension(struct_name: &Ident) -> TokenStream
 
       		match object.async_validate_and_modificate().await {
        			Ok(_) => Ok(object),
-       			Err(errors) => Err((StatusCode::BAD_REQUEST, Json(errors)).into_response()),
+       			Err(errors) => Err((ValidationSettings::get_failure_status_code(), Json(errors)).into_response()),
       		}
        	}
       }
@@ -61,7 +61,7 @@ pub fn get_async_modification_with_context_axum_extension(struct_name: &Ident) -
 
       		match object.specific_async_validate_and_modificate_with_context(&context).await {
        			Ok(_) => Ok(object),
-       			Err(errors) => Err((StatusCode::BAD_REQUEST, Json(errors)).into_response()),
+       			Err(errors) => Err((ValidationSettings::get_failure_status_code(), Json(errors)).into_response()),
       		}
        	}
       }
@@ -101,7 +101,7 @@ pub fn get_async_modification_axum_multipart_extension(struct_name: &Ident) -> T
 
       		match object.async_validate_and_modificate().await {
        			Ok(_) => Ok(object),
-       			Err(errors) => Err((StatusCode::UNPROCESSABLE_ENTITY, Json(errors)).into_response()),
+       			Err(errors) => Err((ValidationSettings::get_failure_multipart_status_code(), Json(errors)).into_response()),
       		}
        	}
       }
@@ -147,7 +147,7 @@ pub fn get_async_modification_with_context_axum_multipart_extension(struct_name:
            	.await
           {
        			Ok(_) => Ok(object),
-       			Err(errors) => Err((StatusCode::UNPROCESSABLE_ENTITY, Json(errors)).into_response()),
+       			Err(errors) => Err((ValidationSettings::get_failure_multipart_status_code(), Json(errors)).into_response()),
           }
        	}
       }

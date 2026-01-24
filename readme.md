@@ -198,6 +198,7 @@ In contrast, no primitive `rule` is asynchronous, therefore the `asynchronous` c
 Some of these features are available now, but are just partially finished. So I will document only after finished then.
 
 - [ ] More test coverage.
+- [x] Custom validation status code.
 - [ ] Failure mode.
   - Now the default is `FailOncePerField` (covered by the tests).
 - [ ] Typed multipart/form-data validation support.
