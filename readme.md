@@ -206,6 +206,7 @@ Some of these features are available now, but are just partially finished. So I 
   - [ ] file validation rules too (maybe).
 - [ ] Validation rules for uuid.
 - [ ] Validation rules for decimal (maybe).
+- [ ] Better macro documentation.
 
 ## 🔌 Axum Integration
 
