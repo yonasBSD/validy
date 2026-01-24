@@ -45,6 +45,7 @@ use crate::{
 			naive_time::create_naive_time, now::create_now, parse_naive_date::create_parse_naive_date,
 			parse_naive_time::create_parse_naive_time, parse_time::create_parse_time, today::create_today,
 		},
+		uuids::{parse_uuid::create_parse_uuid, uuid::create_uuid},
 	},
 };
 
@@ -145,6 +146,7 @@ pub fn get_validation_by_attr_macro(
 		m if m.path.is_ident("ipv4") => create_ipv4(m.input, field, imports),
 		m if m.path.is_ident("ipv6") => create_ipv6(m.input, field, imports),
 		m if m.path.is_ident("pattern") => create_pattern(m.input, field, imports),
+		m if m.path.is_ident("uuid") => create_uuid(m.input, field, imports),
 		m if m.path.is_ident("url") => create_url(m.input, field, imports),
 		m if m.path.is_ident("email") => create_email(m.input, field, imports),
 		m if m.path.is_ident("prefix") => create_prefix(m.input, field, imports),
@@ -191,6 +193,7 @@ pub fn get_operation_by_attr_macro(
 		m if m.path.is_ident("async_custom_with_context") => {
 			create_async_custom_with_context_modification(m.input, field, attributes)
 		}
+		m if m.path.is_ident("parse_uuid") => create_parse_uuid(m.input, field, imports),
 		m if m.path.is_ident("trim") => create_trim(field),
 		m if m.path.is_ident("trim_end") => create_trim_end(field),
 		m if m.path.is_ident("trim_start") => create_trim_start(field),

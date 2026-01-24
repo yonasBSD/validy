@@ -15,3 +15,5 @@ pub mod suffix;
 pub mod time;
 #[cfg(feature = "pattern")]
 pub mod url;
+#[cfg(feature = "uuid")]
+pub mod uuid;

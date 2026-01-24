@@ -9,3 +9,4 @@ pub mod patterns;
 pub mod ranges;
 pub mod specials;
 pub mod time;
+pub mod uuids;
