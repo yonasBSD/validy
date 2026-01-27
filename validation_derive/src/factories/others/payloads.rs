@@ -67,12 +67,7 @@ impl<'a> PayloadsCodeFactory<'a> {
 			.iter()
 			.clone()
 			.map(|field| {
-				let reference = if field.get_ignore() {
-					field.get_wrapper_reference()
-				} else {
-					field.get_reference()
-				};
-
+				let reference = field.get_reference();
 				let name = field.get_name();
 				let field_name = Ident::new(&name.value(), Span::call_site());
 

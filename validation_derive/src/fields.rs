@@ -97,10 +97,6 @@ impl FieldAttributes {
 		false
 	}
 
-	pub fn get_ignore(&self) -> bool {
-		self.ignore
-	}
-
 	pub fn set_ignore(&mut self, ignore: bool) {
 		self.ignore = ignore;
 	}

@@ -1,9 +1,12 @@
 pub mod asynchronous;
+pub mod asynchronous_modificate;
 pub mod asynchronous_modificate_with_context;
-//pub mod asynchronous_payload_with_context;
+pub mod asynchronous_payload;
+pub mod asynchronous_payload_with_context;
 pub mod asynchronous_with_context;
 pub mod default;
 pub mod modificate;
-pub mod modificate_asynchronous;
 pub mod modificate_with_context;
+pub mod payload;
+pub mod payload_with_context;
 pub mod with_context;

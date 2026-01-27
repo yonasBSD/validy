@@ -92,6 +92,26 @@ pub fn get_payload_with_context_boilerplate(
 	result
 }
 
+pub fn get_payload_boilerplate(struct_name: &Ident, wrapper_ident: &Ident, method: &TokenStream) -> TokenStream {
+	#[rustfmt::skip]
+	let result = quote! {
+    impl ValidateAndParse<#wrapper_ident> for #struct_name {
+      fn validate_and_parse(mut wrapper: #wrapper_ident) -> Result<Self, ValidationErrors> {
+       	#method
+      }
+    }
+
+    impl SpecificValidateAndParse for #struct_name {
+      type Wrapper = #wrapper_ident;
+      fn specific_validate_and_parse(mut wrapper: #wrapper_ident) -> Result<Self, ValidationErrors> {
+       	#method
+      }
+    }
+	};
+
+	result
+}
+
 pub fn get_async_payload_boilerplate(struct_name: &Ident, wrapper_ident: &Ident, method: &TokenStream) -> TokenStream {
 	#[rustfmt::skip]
 	let result = quote! {
