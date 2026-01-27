@@ -50,6 +50,7 @@ time = ["dep:chrono"]
 uuid = ["dep:uuid"]
 axum = ["dep:axum", "derive", "validation_derive/axum"]
 axum_multipart = ["axum", "dep:axum_typed_multipart", "validation_derive/axum_multipart"]
+axum_multipart_field_data = ["axum_multipart", "pattern"]
 
 [dev-dependencies]
 futures-util = "0.3.31"

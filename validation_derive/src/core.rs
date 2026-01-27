@@ -28,6 +28,10 @@ use crate::{
 				custom::create_custom, custom_with_context::create_custom_with_context,
 			},
 		},
+		field_datas::{
+			field_content_type::create_field_content_type, field_file_name::create_field_file_name,
+			field_name::create_field_name,
+		},
 		format::{
 			camel_case::create_camel_case, capitalize::create_capitalize, kebab_case::create_kebab_case,
 			lower_camel_case::create_lower_camel_case, lowercase::create_lowercase,
@@ -169,6 +173,9 @@ pub fn get_validate_by_attr_macro(
 		m if m.path.is_ident("after_today") => create_after_today(m.input, field, imports),
 		m if m.path.is_ident("today") => create_today(m.input, field, imports),
 		m if m.path.is_ident("naive_date") => create_naive_date(m.input, field, imports),
+		m if m.path.is_ident("field_content_type") => create_field_content_type(m.input, field, imports),
+		m if m.path.is_ident("field_file_name") => create_field_file_name(m.input, field, imports),
+		m if m.path.is_ident("field_name") => create_field_name(m.input, field, imports),
 		_ => {
 			emit_error!(meta.input.span(), "unknown value");
 			quote! {}
