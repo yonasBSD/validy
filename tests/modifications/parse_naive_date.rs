@@ -6,17 +6,18 @@ use validy::{assert_errors, assert_parsed};
 #[allow(unused)]
 #[derive(Debug, Default, Validate, PartialEq)]
 #[validate(payload)]
+#[wrapper_derive(Clone)]
 struct Test {
 	#[special(from_type(String))]
-	#[modify(parse_naive_date("%Y-%m-%d"))]
+	#[modificate(parse_naive_date("%Y-%m-%d"))]
 	pub a: NaiveDate,
 	#[special(from_type(String))]
-	#[modify(parse_naive_date("%Y-%m-%d"))]
+	#[modificate(parse_naive_date("%Y-%m-%d"))]
 	pub b: Option<NaiveDate>,
 }
 
 #[test]
-fn should_modify_parse_naive_dates() {
+fn should_modificate_parse_naive_dates() {
 	let cases = [
 		(
 			"2024-02-29",
@@ -37,14 +38,14 @@ fn should_modify_parse_naive_dates() {
 	];
 
 	let mut wrapper = TestWrapper::default();
-	let mut result = Test::validate_and_parse(&wrapper);
+	let mut result = Test::validate_and_parse(wrapper.clone());
 	assert_errors!(result, wrapper, {
 		"a" => ("required", "is required"),
 	});
 
 	for (case, expected) in cases.iter() {
 		wrapper.a = Some(case.to_string());
-		result = Test::validate_and_parse(&wrapper);
+		result = Test::validate_and_parse(wrapper.clone());
 
 		assert_parsed!(result, wrapper, Test { a: *expected, b: None });
 	}
@@ -52,7 +53,7 @@ fn should_modify_parse_naive_dates() {
 	let last_a = result.expect("should be a valid result").a;
 	for (case, expected) in cases.iter() {
 		wrapper.b = Some(case.to_string());
-		result = Test::validate_and_parse(&wrapper);
+		result = Test::validate_and_parse(wrapper.clone());
 
 		assert_parsed!(
 			result,

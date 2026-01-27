@@ -89,7 +89,8 @@ pub fn create_parse_uuid(
 		#[rustfmt::skip]
 		let result = quote! {
   		let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
-  		  parse_uuid_fn(&#reference, #field_name, #code, #message)
+        let _ref = &#reference;
+  		  parse_uuid_fn(_ref, #field_name, #code, #message)
   		} else {
   		  (default_uuid_fn(), None)
   		};

@@ -18,7 +18,7 @@ impl ImportsSet {
 		self.set.insert(import);
 	}
 
-	pub fn build(&self) -> TokenStream {
+	pub fn create(&self) -> TokenStream {
 		let imports: Vec<TokenStream> = self
 			.set
 			.iter()
@@ -30,10 +30,6 @@ impl ImportsSet {
 					Import::ValidySettings => import_validy_settings(),
 					Import::ValidyHelpers => import_validy_helpers(),
 					Import::AsyncTrait => import_async_trait(),
-					Import::TryFromMultipart => import_try_from_multipart(),
-					Import::Serialize => import_serialize(),
-					Import::Clone => quote! {},
-					Import::Copy => quote! {},
 				};
 
 				quote! { use #import; }
@@ -41,30 +37,6 @@ impl ImportsSet {
 			.collect();
 
 		quote! { #(#imports)* }
-	}
-
-	pub fn get_derives(&self) -> TokenStream {
-		let mut derives = vec![quote!(Debug), quote!(Default), quote!(::serde::Deserialize)];
-
-		if self.set.contains(&Import::Serialize) {
-			derives.push(quote!(Serialize));
-		}
-
-		if self.set.contains(&Import::TryFromMultipart) {
-			derives.push(quote!(TryFromMultipart));
-		}
-
-		if self.set.contains(&Import::Clone) {
-			derives.push(quote!(Clone));
-		}
-
-		if self.set.contains(&Import::Copy) {
-			derives.push(quote!(Copy));
-		}
-
-		quote! {
-			#[derive(#(#derives),*)]
-		}
 	}
 }
 
@@ -76,10 +48,6 @@ pub enum Import {
 	ValidySettings,
 	ValidyHelpers,
 	AsyncTrait,
-	TryFromMultipart,
-	Clone,
-	Copy,
-	Serialize,
 }
 
 fn import_validation_functions(function: &str) -> TokenStream {
@@ -152,30 +120,6 @@ fn import_async_trait() -> TokenStream {
 		FoundCrate::Name(name) => {
 			let ident = Ident::new(&name, Span::call_site());
 			quote!(#ident::async_trait)
-		}
-	}
-}
-
-fn import_try_from_multipart() -> TokenStream {
-	let found_crate = crate_name("axum_typed_multipart").expect("axum_typed_multipart is present in `Cargo.toml`");
-
-	match found_crate {
-		FoundCrate::Itself => quote!(crate::TryFromMultipart),
-		FoundCrate::Name(name) => {
-			let ident = Ident::new(&name, Span::call_site());
-			quote!(#ident::TryFromMultipart)
-		}
-	}
-}
-
-fn import_serialize() -> TokenStream {
-	let found_crate = crate_name("serde").expect("serde is present in `Cargo.toml`");
-
-	match found_crate {
-		FoundCrate::Itself => quote!(crate::Serialize),
-		FoundCrate::Name(name) => {
-			let ident = Ident::new(&name, Span::call_site());
-			quote!(#ident::Serialize)
 		}
 	}
 }

@@ -6,17 +6,18 @@ use validy::{assert_errors, assert_parsed};
 #[allow(unused)]
 #[derive(Debug, Default, Validate, PartialEq)]
 #[validate(payload)]
+#[wrapper_derive(Clone)]
 struct Test {
 	#[special(from_type(String))]
-	#[modify(parse_uuid)]
+	#[modificate(parse_uuid)]
 	pub a: Uuid,
 	#[special(from_type(String))]
-	#[modify(parse_uuid)]
+	#[modificate(parse_uuid)]
 	pub b: Option<Uuid>,
 }
 
 #[test]
-fn should_modify_parse_uuids() {
+fn should_modificate_parse_uuids() {
 	let cases = [
 		(
 			"f47ac10b-58cc-4372-a567-0e02b2c3d479",
@@ -26,21 +27,18 @@ fn should_modify_parse_uuids() {
 			"urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			Uuid::parse_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8").expect("should be a valid uuid"),
 		),
-		(
-			"00000000-0000-0000-0000-000000000000",
-			Uuid::nil(),
-		),
+		("00000000-0000-0000-0000-000000000000", Uuid::nil()),
 	];
 
 	let mut wrapper = TestWrapper::default();
-	let mut result = Test::validate_and_parse(&wrapper);
+	let mut result = Test::validate_and_parse(wrapper.clone());
 	assert_errors!(result, wrapper, {
 		"a" => ("required", "is required"),
 	});
 
 	for (case, expected) in cases.iter() {
 		wrapper.a = Some(case.to_string());
-		result = Test::validate_and_parse(&wrapper);
+		result = Test::validate_and_parse(wrapper.clone());
 
 		assert_parsed!(result, wrapper, Test { a: *expected, b: None });
 	}
@@ -48,7 +46,7 @@ fn should_modify_parse_uuids() {
 	let last_a = result.expect("should be a valid result").a;
 	for (case, expected) in cases.iter() {
 		wrapper.b = Some(case.to_string());
-		result = Test::validate_and_parse(&wrapper);
+		result = Test::validate_and_parse(wrapper.clone());
 
 		assert_parsed!(
 			result,
@@ -61,7 +59,7 @@ fn should_modify_parse_uuids() {
 	}
 
 	wrapper.a = Some("invalid-uuid".to_string());
-	result = Test::validate_and_parse(&wrapper);
+	result = Test::validate_and_parse(wrapper.clone());
 	assert_errors!(result, wrapper, {
 		"a" => ("uuid", "invalid uuid format"),
 	});

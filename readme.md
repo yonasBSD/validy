@@ -57,12 +57,12 @@ use validy::core::{Validate, ValidationError};
 #[derive(Debug, Deserialize, Validate)]
 #[validate(asynchronous, context = Arc<dyn UserService>, payload, axum)]
 pub struct CreateUserExampleDTO {
-	#[modify(trim)]
+	#[modificate(trim)]
 	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
 	#[validate(required("name is required"))] // Just changes the 'required' message.
 	pub name: String,
 
-	#[modify(trim)]
+	#[modificate(trim)]
 	#[validate(email("invalid email format", "bad_format"))]
 	#[validate(async_custom_with_context(validate_unique_email))]
 	// You can pass extra arguments.
@@ -81,15 +81,15 @@ pub struct CreateUserExampleDTO {
 	pub password: String,
 
 	#[special(from_type(String))] // 'dependent_id' will be deserialized as Option<String>.
-	#[modify(lowercase)] // You can modify or validate it as a String, if it has a value.
-	#[modify(inline(|_| 3))] // You can then parse it to the final value type.
-	#[validate(range(3..=12))] // And validate or modify it again.
+	#[modificate(lowercase)] // You can modificate or validate it as a String, if it has a value.
+	#[modificate(inline(|x: &mut u16| *x = 3))] // You can then parse it to the final value type.
+	#[validate(range(3..=12))] // And validate or modificate it again.
 	pub dependent_id: u16,
 
-	#[modify(trim)]
+	#[modificate(trim)]
 	#[validate(length(0..=254, "tag must not be more than 254 characters"))]
-	#[modify(snake_case)]
-	#[modify(custom(modify_tag))]
+	#[modificate(snake_case)]
+	#[modificate(custom(modificate_tag))]
 	pub tag: Option<String>, // 'tag' is truly optional.
 	
 	#[special(from_type(RoleWrapper))] // Required to correctly define the wrapper field type.
@@ -106,20 +106,20 @@ pub struct CreateUserExampleDTO {
 pub struct Role {
 	#[special(from_type(Vec<String>))]
 	#[validate(length(1..=2))]
-	#[special(for_each( // You can validate or modify each item in a collection.
+	#[special(for_each( // You can validate or modificate each item in a collection.
  	  config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
-    modify(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))), // Just another parse example.
+    modificate(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))), // Just another parse example.
     validate(inline(|x: &u32| *x > 1)), // Just a validation example.
- 	  modify(inline(|x| x + 1))
+ 	  modificate(inline(|x: &mut u32| *x += 1))
 	))]
 	pub permissions: Vec<u32>,
 	
 	#[special(from_type(Vec<String>))]
 	#[special(for_each(
 	  config(from_item = String, from_collection = Vec<String>, to_collection = Vec<u32>),
-		modify(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))),
+		modificate(inline(|x: &str| ::serde_json::from_str::<u32>(x).unwrap_or(0))),
 	  validate(inline(|x: &u32| *x > 1)),
-		modify(inline(|x| x + 1))
+		modificate(inline(|x: &mut u32| *x += 1))
 	))]
 	pub alt_permissions: Vec<u32>,
 }
@@ -128,7 +128,7 @@ pub struct Role {
 // All custom modification rules can also throw validation errors.
 // Unfortunately, each modification has to return a new value instead of changing the existing one in-place.
 // This ensures that changes are only committed at the end of the validation process.
-fn modify_tag(tag: &str, _field_name: &str) -> (String, Option<ValidationError>) {
+fn modificate_tag(tag: &mut String, _field_name: &str) -> Result<(), ValidationError> {
 	("new_tag".to_string(), None)
 }
 
@@ -174,7 +174,7 @@ You might not like it, but I took the liberty of naming things as I see fit. So,
 //---------^^^^^^^^^^^^ Configuration attribute
 pub struct CreateUserExampleDTO {
     //vvvvvv Rule group
-    #[modify(trim, lowercase)]
+    #[modificate(trim, lowercase)]
     //-------^^^^ Rule
     #[validate(length(3..=120, "name must be between 3 and 120 characters"))]
     //----------------^^^^^^^ Rule arg 'range' value
@@ -190,7 +190,7 @@ Almost all `rules` are executed from left to right and top to bottom, according 
 
 ### Implementations
 
-There is a cost to committing changes after all `rules` have been met. When the `modify` or `payload` configuration attributes are enabled, a clone of the value is created after each modification. Some validation rules also need to clone values.
+There is a cost to committing changes after all `rules` have been met. When the `modificate` or `payload` configuration attributes are enabled, a clone of the value is created after each modification. Some validation rules also need to clone values.
 
 In contrast, no primitive `rule` is asynchronous. Therefore, the `asynchronous` configuration attribute is only necessary to enable custom async `rules`. The use of `context` is similar.
 
@@ -228,11 +228,11 @@ See an example:
 #[derive(Debug, Deserialize, Validate)]
 #[validate(asynchronous, context = Arc<dyn UserService>, payload, axum)]
 pub struct CreateUserDTO {
-	#[modify(trim)]
+	#[modificate(trim)]
 	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
 	pub name: String,
 
-	#[modify(trim)]
+	#[modificate(trim)]
 	#[validate(length(0..=254, "email must not be more than 254 characters"))]
 	#[validate(email("invalid email format"))]
 	#[validate(async_custom_with_context(validate_unique_email))]
@@ -377,7 +377,7 @@ All rules prefixed with `async_` require the `asynchronous` configuration attrib
 
 ## 🔨 Modification Rules
 
-Primitive rules for the `#[modify(...)]` attribute. These all require either the `payload` or `modify` attribute to be enabled on the struct.
+Primitive rules for the `#[modificate(...)]` attribute. These all require either the `payload` or `modificate` attribute to be enabled on the struct.
 
 > The '?' indicates that the argument is optional.
 
@@ -480,7 +480,7 @@ All require the `macro_rules_assertions` feature flag to be enabled.
 
 ```rust
 let mut wrapper = TestWrapper::default();
-let mut result = Test::validate_and_parse(&wrapper);
+let mut result = Test::validate_and_parse(wrapper.clone());
 assert_errors!(result, wrapper, { // 'wrapper' is the input
 	"a" => ("required", "is required"),
 });
@@ -493,7 +493,7 @@ assert_modification!(test.b, Some(expected.to_string()), test);
 ```
 
 ```rust
-result = Test::validate_and_parse(&wrapper);
+result = Test::validate_and_parse(wrapper.clone());
 assert_parsed!(result, wrapper, Test { a: *expected, b: None });
 ```
 

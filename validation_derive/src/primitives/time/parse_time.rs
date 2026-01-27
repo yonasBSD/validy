@@ -97,7 +97,8 @@ pub fn create_parse_time(
 		#[rustfmt::skip]
 		let result = quote! {
       let (mut #new_reference, error) = if can_continue(&errors, failure_mode, #field_name) {
-  		  parse_time_fn(&#reference, #format, #field_name, #code, #message)
+        let _ref = &#reference;
+  		  parse_time_fn(_ref, #format, #field_name, #code, #message)
   		} else {
   		  (default_time_fn(), None)
   		};
