@@ -25,3 +25,7 @@ pub mod option;
 pub mod pattern;
 pub mod prefix;
 pub mod range;
+pub mod suffix;
+pub mod time;
+pub mod today;
+pub mod url;
