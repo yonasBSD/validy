@@ -20,7 +20,7 @@ struct Test {
 }
 
 #[test]
-fn should_validate_allowlists() {
+fn should_validate_blocklists() {
 	let cases = (["a"], [vec!["a".into(), "c".into()]]);
 
 	let mut test = Test::default();

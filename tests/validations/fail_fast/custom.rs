@@ -38,7 +38,7 @@ pub fn custom_params_two_fn(_value: &bool, field: &str, _extra_param: &bool) -> 
 }
 
 #[test]
-fn should_validate_customs_with_context() {
+fn should_validate_customs() {
 	let cases = [false];
 
 	let mut test = Test {

@@ -38,7 +38,7 @@ pub async fn custom_params_two_fn(_value: &bool, field: &str, _extra_param: &boo
 }
 
 #[tokio::test]
-async fn should_validate_async_customs_with_context() {
+async fn should_validate_async_customs() {
 	let cases = [false];
 
 	let mut test = Test {
