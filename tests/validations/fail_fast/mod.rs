@@ -22,3 +22,6 @@ pub mod naive_date;
 pub mod naive_time;
 pub mod now;
 pub mod option;
+pub mod pattern;
+pub mod prefix;
+pub mod range;
