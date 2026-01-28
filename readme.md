@@ -444,7 +444,7 @@ The crate's behavior can be adjusted in your `Cargo.toml`.
 | `time` | Enables time rules. | `dep:chrono` |
 | `axum` | Enables Axum integration. | `dep:axum`, `derive` |
 | `axum_multipart` | Enables multipart support. | `axum_typed_multipart`, `axum` |
-| `axum_multipart_field_data` | Enables multipart field data rules " | `axum_multipart`, `pattern` |
+| `axum_multipart_field_data` | Enables multipart field data rules. | `axum_multipart`, `pattern` |
 | `macro_rules` | Enables macros for validation errors. | |
 | `macro_rules_assertions` | Enables macros for assertions (tests). | `dep:pretty_assertions` |
 
@@ -609,7 +609,7 @@ Primitive rules for the `#[special(...)]` attribute.
 
 ## 📨 Wrappers
 
-Wrappers are generated structs similar to the original struct where all fields are covered with `Option`. They all have the `Default` and `Debug` derive macros by default. And when the `multipart` configuration attribute is disabled, they also implement `Deserialize`. Ultimately, the only reason I could think of for having all optional fields was the deserialization and validation of required fields with custom errors.
+Wrappers are generated structs similar to the original struct where all fields are covered with `Option`. They all have the `Default` and `Debug` derive macros by default. And when the `multipart` configuration attribute is disabled, they also implement `Deserialize`. Ultimately, the reasons I could think of for having all optional fields was the deserialization and validation of required fields with custom errors and parses.
 
 The name of the wrapper struct is the name of the origional struct with the suffix 'Wrapper'. For example, `CreateUserDTO` generates a public wrapper named `CreateUserDTOWrapper`. The generated wrapper is left exposed for you to use. You also can use `#[wrapper_derive(...)]` struct attribute in the origional struct to apply derive macros on the wrapper and `#[wrapper_attribute(...)]` attribute in the origional struct to apply attributes on the wrapper.
 
@@ -864,7 +864,7 @@ Some of these features are available now, but are only partially finished. I wil
   - [x] File validation rules.
 - [x] Validation rules for uuid.
 - [x] Better documentation.
-- [ ] Fully support for external crates field and structs attributes.
+- [x] Fully support for external crates field and structs attributes.
 - [ ] Failure mode.
   - The current default is `FailOncePerField` (covered by the tests).
 - [ ] Validation rules for decimal (maybe).
