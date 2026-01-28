@@ -342,11 +342,11 @@ use axum_typed_multipart::{FieldData, TryFromMultipart};
 #[validate(asynchronous, context = Arc<dyn UserService>, payload, axum, multipart)]
 #[wrapper_derive(TryFromMultipart)]
 pub struct CreateUserDTO {
-  #[form_data(limit = "10MB")]
+  #[wrapper_attribute(form_data(limit = "10MB"))]
   #[validate(field_content_type(r"^(image/.*)$"))] //requires `axum_multipart_field_data` feature yet
   pub avatar: FieldData<NamedTempFile>,
   
-  #[form_data(field_name = "user_name")]
+  #[wrapper_attribute(form_data(field_name = "user_name"))]
 	#[modificate(trim)]
 	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
 	pub name: String,
@@ -611,18 +611,32 @@ Primitive rules for the `#[special(...)]` attribute.
 
 Wrappers are generated structs similar to the original struct where all fields are covered with `Option`. They all have the `Default` and `Debug` derive macros by default. And when the `multipart` configuration attribute is disabled, they also implement `Deserialize`. Ultimately, the only reason I could think of for having all optional fields was the deserialization and validation of required fields with custom errors.
 
-The name of the wrapper struct is the name of the origional struct with the suffix 'Wrapper'. For example, `CreateUserDTO` generates a public wrapper named `CreateUserDTOWrapper`. The generated wrapper is left exposed for you to use. You also can use `#[wrapper_derive(...)]` struct attribute in the origional struct to apply derive macros on the wrapper.
+The name of the wrapper struct is the name of the origional struct with the suffix 'Wrapper'. For example, `CreateUserDTO` generates a public wrapper named `CreateUserDTOWrapper`. The generated wrapper is left exposed for you to use. You also can use `#[wrapper_derive(...)]` struct attribute in the origional struct to apply derive macros on the wrapper and `#[wrapper_attribute(...)]` attribute in the origional struct to apply attributes on the wrapper.
 
-The following field attributes are passed to the wrapper when its original struct has them in the fields:
-- `serde` from `serde`.
-- `field` from `axum_typed_multipart`.
-- `form_data` from `axum_typed_multipart`.
+```rust
+use axum_typed_multipart::{FieldData, TryFromMultipart};
+use serde::Serialize;
+use tempfile::NamedTempFile;
+use validy::core::Validate;
 
-The following field attributes are passed to the wrapper when its original struct has them in the fields:
-- `try_from_multipart` from `axum_typed_multipart`.
-- `serde` from `serde`
+#[derive(Debug, Validate, Serialize)]
+#[validate(asynchronous, payload, axum, multipart)]
+#[wrapper_derive(Debug, Serialize)]
+#[wrapper_attribute(try_from_multipart(strict))]
+pub struct TestDTO {
+	#[serde(skip)]
+	#[wrapper_attribute(serde(skip))]
+	#[wrapper_attribute(form_data(limit = "10MB"))]
+	pub file: FieldData<NamedTempFile>,
 
-> It doesn't seem very difficult to me, so we'll probably have a way to apply any field attribute or struct attribute from other libraries soon. For now, this is a limitation.
+	#[wrapper_attribute(form_data(field_name = "user_name"))]
+	#[modificate(trim)]
+	#[validate(length(3..=120, "name must be between 3 and 120 characters"))]
+	#[validate(required("name is required"))]
+	pub name: String,
+	//...
+}
+```
 
 ## 📐 Useful Macros
 
@@ -673,7 +687,7 @@ let error = nested_validation_error!(
 
 ### For `test` assertions
   
-All require the `macro_rules_assertions` feature flag to be enabled.
+All require the `macro_rules_assertions` feature flag to be enabled. They all require the input to implement `Debug` and/or `PartialEq` trait.
 
 ```rust
 use validy::{

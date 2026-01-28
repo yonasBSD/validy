@@ -22,16 +22,7 @@ use syn::{DeriveInput, spanned::Spanned};
 #[proc_macro_error]
 #[proc_macro_derive(
 	Validate,
-	attributes(
-		validate,
-		wrapper_derive,
-		modificate,
-		parse,
-		special,
-		form_data,
-		try_from_multipart,
-		serde
-	)
+	attributes(validate, modificate, parse, special, wrapper_derive, wrapper_attribute)
 )]
 pub fn validation_macro(input: Input) -> Output {
 	let ast = syn::parse(input).unwrap();
