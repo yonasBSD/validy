@@ -874,6 +874,6 @@ If the examples aren't enough, I've included a more complete and documented exam
 
 ## 🎁 For Developers
 
-You can run all tests with `cargo test-all`. To see the generated code from the `derive` macros, you can run the `expand.sh` script (this requires `cargo expand`). It will compile, generate, and check all tests.
+You can run all tests with `cargo test-all`. To see the expanded code from the `derive` macros, you can run the `expand.sh` script (this requires `cargo expand` and can take quite a while). It will compile, expand, and check all tests.
 
 > This is a personal project maintained by a graduate student. Maintenance may be limited, but I do my best to keep it in good shape.
