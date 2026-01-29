@@ -137,7 +137,7 @@ If that example isn't enough, check [📁 More Examples](#-more-examples).
 
 ## 📓 Glossary
 
-I've made some naming that might escape the standard, so I think this might be helpful:
+I've used some naming conventions that might deviate from the standard, so I think this might be helpful:
 
 ```rust
 use validy::core::Validate;
@@ -164,20 +164,19 @@ pub struct CreateUserExampleDTO {
 
 Almost all `rules` are executed from left to right and top to bottom, according to their field attribute and definition order.
 
-I decided to avoid unnecessary `.clone()` calls for performance. Practically all rules only use references, the exceptions are the `allowlist` and `blocklist` rules, which need to clone the items (the field to be validated does not need to be cloned). Additionally, the `regex` rule and some rules with patterns needs to clone the `Arc` pointer from the cache.
+To optimize performance, I minimized unnecessary `.clone()` calls. Practically all rules only use references, the exceptions are the `allowlist` and `blocklist` rules, which need to clone the items (the field to be validated does not need to be cloned). Additionally, the `regex` rule and some rules with patterns needs to clone the `Arc` pointer from the cache.
 
 It was also inevitable that the `parse` field attribute returns new values.
 
 ### Failure modes
 
-Currently, there are four failure modes available. However, only one is covered by the tests (I will expand the coverage later). The options are:
+Currently, there are four failure modes available:
 
 - `FailureMode::FailOncePerField` 
-  - Currently the standard value, and also covered by the tests.
-  - As soon as an error is caught in a field, it moves on to another field.
+  - The default failure mode.
+  - Once an error is detected in a field, validation proceeds to the next field.
 - `FailureMode::FailFast` 
-  - As soon as an error is caught, it stops validation and throws it. 
-  - It is expected to be the most performant mode for this reason.
+  - As soon as an error is caught, it stops validation and throws it.
 - `FailureMode::LastFailPerField` 
   - Keeps only the last error caught for each field.
 - `FailureMode::FullFail` 
@@ -610,14 +609,14 @@ Primitive rules for the `#[special(...)]` attribute.
 
 | **Rule** | **Description** |
 | :-------- | :------- |
-| `nested`(value = <type>, wrapper = <?type>, code = <?string>) | Validates the fields of a nested struct. Warning: cyclical references can cause compilation issues. |
+| `nested`(value = <type>, wrapper = <?type>, code = <?string>) | Validates the fields of a nested struct. Warning: cyclic references can cause compilation issues. |
 | `ignore` | Ignores any validation or modification rule. |
 | `for_each`(config?(from_item = <?type>, to_collection = <?type>, from_collection = <?type>), \<rule>) | Applies validation rules to every element in a collection. The `from_item` arg from the optional `config` rule defines the type of each collection item. The `to_collection` arg defines the final type of the collection, and the `from_collection` arg defines the initial type. It's like a `from_type` adapter for collections. |
 | `from_type`(value = <?type>) | Defines the type of the field in the wrapper. Must be defined before all other rules on a field. |
 
 ## 📨 Wrappers
 
-Wrappers are generated structs similar to the original struct where all fields are covered with `Option`. They all have the `Default` derive macros by default. When the `multipart` configuration attribute is enabled, they also has `TryFromMultipart` derive macro, otherwise, they has `Deserialize` derive macro.
+Wrappers are generated structs similar to the original struct where all fields are covered with `Option`. They all have the `Default` derive macros by default. When the `multipart` configuration attribute is enabled, they also have `TryFromMultipart` derive macro, otherwise, they has `Deserialize` derive macro.
 
 The name of the wrapper struct is the name of the origional struct with the suffix 'Wrapper'. For example, `CreateUserDTO` generates a public wrapper named `CreateUserDTOWrapper`. The generated wrapper is left exposed for you to use. You also can use `#[wrapper_derive(...)]` struct attribute in the origional struct to apply derive macros on the wrapper and `#[wrapper_attribute(...)]` attribute in the origional struct to apply attributes on the wrapper.
 
@@ -644,6 +643,17 @@ pub struct TestDTO {
 	pub name: String,
 	//...
 }
+
+// Generates...
+// #[derive(Debug, Serialize, TryFromMultipart)]
+// #[try_from_multipart(strict)]
+// pub struct TestDTOWrapper {
+//   #[serde(skip)]
+//   #[form_data(limit = "10MB")]
+//   pub file: Option<FieldData<NamedTempFile>>,
+//   #[form_data(field_name = "user_name")]
+//   pub name: Option<String>,
+// }
 ```
 
 ## 📐 Useful Macros
