@@ -92,10 +92,10 @@ impl TryFromField for RoleDTO {
 	}
 }
 
-fn validate_unique_email(email: &str, field_name: &str) -> Result<(), ValidationError> {
+fn validate_unique_email(email: &str, field: &str) -> Result<(), ValidationError> {
 	if email == "test@gmail.com" {
 		Err(ValidationError::builder()
-			.with_field(field_name.to_string())
+			.with_field(field.to_string())
 			.as_simple("unique")
 			.with_message("e-mail must be unique")
 			.build()

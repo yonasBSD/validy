@@ -16,7 +16,7 @@ struct Test {
 	pub c: Option<u32>,
 }
 
-async fn parse(value: String, _field_name: &str, context: &bool) -> ParseResult<u32> {
+async fn parse(value: String, _field: &str, context: &bool) -> ParseResult<u32> {
 	if *context {
 		(value.parse::<u32>().unwrap_or(0), None)
 	} else {
@@ -24,7 +24,7 @@ async fn parse(value: String, _field_name: &str, context: &bool) -> ParseResult<
 	}
 }
 
-async fn parse_two(value: String, _field_name: &str, context: &bool, extra_arg: &Option<u32>) -> ParseResult<u32> {
+async fn parse_two(value: String, _field: &str, context: &bool, extra_arg: &Option<u32>) -> ParseResult<u32> {
 	if *context {
 		(extra_arg.unwrap_or(value.parse::<u32>().unwrap_or(0)), None)
 	} else {
@@ -32,21 +32,11 @@ async fn parse_two(value: String, _field_name: &str, context: &bool, extra_arg: 
 	}
 }
 
-async fn parse_three(
-	_: String,
-	field_name: &str,
-	_context: &bool,
-	a: &Option<u32>,
-	b: &Option<u32>,
-) -> ParseResult<u32> {
+async fn parse_three(_: String, field: &str, _context: &bool, a: &Option<u32>, b: &Option<u32>) -> ParseResult<u32> {
 	match (a, b) {
 		(_, None) => (
 			0,
-			Some(validation_error!(
-				field_name.to_string(),
-				"custom_code",
-				"custom message"
-			)),
+			Some(validation_error!(field.to_string(), "custom_code", "custom message")),
 		),
 		(Some(a), _) => (*a, None),
 		(None, Some(b)) => (*b, None),

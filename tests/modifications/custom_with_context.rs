@@ -14,7 +14,7 @@ struct Test {
 	pub c: Option<String>,
 }
 
-fn modificate(value: &mut String, _field_name: &str, context: &bool) -> Result<(), ValidationError> {
+fn modificate(value: &mut String, _field: &str, context: &bool) -> Result<(), ValidationError> {
 	if *context {
 		*value = (value.to_string() + "_test").to_string();
 	};
@@ -24,7 +24,7 @@ fn modificate(value: &mut String, _field_name: &str, context: &bool) -> Result<(
 
 fn modificate_two(
 	value: &mut String,
-	_field_name: &str,
+	_field: &str,
 	context: &bool,
 	extra_arg: &Option<String>,
 ) -> Result<(), ValidationError> {
@@ -37,17 +37,13 @@ fn modificate_two(
 
 fn modificate_three(
 	value: &mut String,
-	field_name: &str,
+	field: &str,
 	_context: &bool,
 	a: &Option<String>,
 	b: &Option<String>,
 ) -> Result<(), ValidationError> {
 	match (a, b) {
-		(_, None) => Err(validation_error!(
-			field_name.to_string(),
-			"custom_code",
-			"custom message"
-		)),
+		(_, None) => Err(validation_error!(field.to_string(), "custom_code", "custom message")),
 		(Some(a), _) => {
 			*value = a.to_string().clone();
 			Ok(())

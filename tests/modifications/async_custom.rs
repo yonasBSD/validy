@@ -13,32 +13,24 @@ struct Test {
 	pub c: Option<String>,
 }
 
-async fn modificate(value: &mut String, _field_name: &str) -> Result<(), ValidationError> {
+async fn modificate(value: &mut String, _field: &str) -> Result<(), ValidationError> {
 	*value = (value.to_string() + "_test").to_string();
 	Ok(())
 }
 
-async fn modificate_two(
-	value: &mut String,
-	_field_name: &str,
-	extra_arg: &Option<String>,
-) -> Result<(), ValidationError> {
+async fn modificate_two(value: &mut String, _field: &str, extra_arg: &Option<String>) -> Result<(), ValidationError> {
 	*value = extra_arg.clone().unwrap_or(value.to_string());
 	Ok(())
 }
 
 async fn modificate_three(
 	value: &mut String,
-	field_name: &str,
+	field: &str,
 	a: &Option<String>,
 	b: &Option<String>,
 ) -> Result<(), ValidationError> {
 	match (a, b) {
-		(_, None) => Err(validation_error!(
-			field_name.to_string(),
-			"custom_code",
-			"custom message"
-		)),
+		(_, None) => Err(validation_error!(field.to_string(), "custom_code", "custom message")),
 		(Some(a), _) => {
 			*value = a.to_string().clone();
 			Ok(())

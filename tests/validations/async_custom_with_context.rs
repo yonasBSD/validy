@@ -9,19 +9,19 @@ use validy::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 #[validate(asynchronous, context = bool)]
 struct Test {
-	#[validate(async_custom_with_context(custom_fn, []))]
-	#[validate(async_custom_with_context(custom_params_fn, [&self.b]))]
+	#[validate(async_custom_with_context(validate, []))]
+	#[validate(async_custom_with_context(custom_params, [&self.b]))]
 	pub a: bool,
-	#[validate(async_custom_with_context(custom_fn, []))]
-	#[validate(async_custom_with_context(custom_params_two_fn, [&self.a]))]
+	#[validate(async_custom_with_context(validate, []))]
+	#[validate(async_custom_with_context(custom_params_two, [&self.a]))]
 	pub b: Option<bool>,
-	#[validate(async_custom_with_context(custom_fn, []))]
+	#[validate(async_custom_with_context(validate, []))]
 	pub c: Option<bool>,
-	#[validate(async_custom_with_context(custom_fn, []))]
+	#[validate(async_custom_with_context(validate, []))]
 	pub d: Option<bool>,
 }
 
-pub async fn custom_fn(value: &bool, field: &str, context: &bool) -> Result<(), ValidationError> {
+pub async fn validate(value: &bool, field: &str, context: &bool) -> Result<(), ValidationError> {
 	if !*value || !*context {
 		return Err(validation_error!(field.to_string(), "custom_code", "custom message"));
 	}
@@ -29,7 +29,7 @@ pub async fn custom_fn(value: &bool, field: &str, context: &bool) -> Result<(), 
 	Ok(())
 }
 
-pub async fn custom_params_fn(
+pub async fn custom_params(
 	value: &bool,
 	field: &str,
 	context: &bool,
@@ -42,7 +42,7 @@ pub async fn custom_params_fn(
 	Ok(())
 }
 
-pub async fn custom_params_two_fn(
+pub async fn custom_params_two(
 	value: &bool,
 	field: &str,
 	context: &bool,

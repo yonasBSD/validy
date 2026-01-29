@@ -3,9 +3,14 @@ pub mod async_custom_with_context;
 pub mod camel_case;
 pub mod capitalize;
 pub mod custom;
+
 pub mod custom_with_context;
+pub mod fail_fast;
+pub mod fail_once_per_field;
+pub mod full_fail;
 pub mod inline;
 pub mod kebab_case;
+pub mod last_fail_per_field;
 pub mod lower_camel_case;
 pub mod lowercase;
 pub mod shouty_kebab_case;

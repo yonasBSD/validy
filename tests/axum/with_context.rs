@@ -58,16 +58,12 @@ pub struct RoleDTO {
 	pub alt_permissions: Vec<u32>,
 }
 
-fn validate_unique_email(
-	email: &str,
-	field_name: &str,
-	service: &Arc<dyn MockedService>,
-) -> Result<(), ValidationError> {
+fn validate_unique_email(email: &str, field: &str, service: &Arc<dyn MockedService>) -> Result<(), ValidationError> {
 	let result = service.sync_email_exists(email);
 
 	if result {
 		Err(ValidationError::builder()
-			.with_field(field_name.to_string())
+			.with_field(field.to_string())
 			.as_simple("unique")
 			.with_message("e-mail must be unique")
 			.build()
