@@ -9,19 +9,19 @@ use validy::assert_errors;
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 #[validate(asynchronous, failure_mode = LastFailPerField)]
 struct Test {
-	#[validate(async_custom(custom_fn, []))]
-	#[validate(async_custom(custom_params_fn, [&self.b]))]
+	#[validate(async_custom(validate, []))]
+	#[validate(async_custom(custom_params, [&self.b]))]
 	pub a: bool,
-	#[validate(async_custom(custom_fn, []))]
-	#[validate(async_custom(custom_params_two_fn, [&self.a]))]
+	#[validate(async_custom(validate, []))]
+	#[validate(async_custom(custom_params_two, [&self.a]))]
 	pub b: Option<bool>,
 }
 
-pub async fn custom_fn(_value: &bool, field: &str) -> Result<(), ValidationError> {
+pub async fn validate(_value: &bool, field: &str) -> Result<(), ValidationError> {
 	Err(validation_error!(field.to_string(), "custom_code", "custom message"))
 }
 
-pub async fn custom_params_fn(_value: &bool, field: &str, _extra_param: &Option<bool>) -> Result<(), ValidationError> {
+pub async fn custom_params(_value: &bool, field: &str, _extra_param: &Option<bool>) -> Result<(), ValidationError> {
 	Err(validation_error!(
 		field.to_string(),
 		"custom_code_2",
@@ -29,7 +29,7 @@ pub async fn custom_params_fn(_value: &bool, field: &str, _extra_param: &Option<
 	))
 }
 
-pub async fn custom_params_two_fn(_value: &bool, field: &str, _extra_param: &bool) -> Result<(), ValidationError> {
+pub async fn custom_params_two(_value: &bool, field: &str, _extra_param: &bool) -> Result<(), ValidationError> {
 	Err(validation_error!(
 		field.to_string(),
 		"custom_code_2",

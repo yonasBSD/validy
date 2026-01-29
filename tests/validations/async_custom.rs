@@ -9,19 +9,19 @@ use validy::{assert_errors, assert_validation};
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 #[validate(asynchronous)]
 struct Test {
-	#[validate(async_custom(custom_fn, []))]
-	#[validate(async_custom(custom_params_fn, [&self.b]))]
+	#[validate(async_custom(validate, []))]
+	#[validate(async_custom(custom_params, [&self.b]))]
 	pub a: bool,
-	#[validate(async_custom(custom_fn, []))]
-	#[validate(async_custom(custom_params_two_fn, [&self.a]))]
+	#[validate(async_custom(validate, []))]
+	#[validate(async_custom(custom_params_two, [&self.a]))]
 	pub b: Option<bool>,
-	#[validate(async_custom(custom_fn, []))]
+	#[validate(async_custom(validate, []))]
 	pub c: Option<bool>,
-	#[validate(async_custom(custom_fn, []))]
+	#[validate(async_custom(validate, []))]
 	pub d: Option<bool>,
 }
 
-pub async fn custom_fn(value: &bool, field: &str) -> Result<(), ValidationError> {
+pub async fn validate(value: &bool, field: &str) -> Result<(), ValidationError> {
 	if !*value {
 		return Err(validation_error!(field.to_string(), "custom_code", "custom message"));
 	}
@@ -29,7 +29,7 @@ pub async fn custom_fn(value: &bool, field: &str) -> Result<(), ValidationError>
 	Ok(())
 }
 
-pub async fn custom_params_fn(value: &bool, field: &str, extra_param: &Option<bool>) -> Result<(), ValidationError> {
+pub async fn custom_params(value: &bool, field: &str, extra_param: &Option<bool>) -> Result<(), ValidationError> {
 	if !(*value || extra_param.is_some_and(|c| c)) {
 		return Err(validation_error!(field.to_string(), "custom_code", "custom message"));
 	}
@@ -37,7 +37,7 @@ pub async fn custom_params_fn(value: &bool, field: &str, extra_param: &Option<bo
 	Ok(())
 }
 
-pub async fn custom_params_two_fn(value: &bool, field: &str, extra_param: &bool) -> Result<(), ValidationError> {
+pub async fn custom_params_two(value: &bool, field: &str, extra_param: &bool) -> Result<(), ValidationError> {
 	if !(*value && *extra_param) {
 		return Err(validation_error!(field.to_string(), "custom_code", "custom message"));
 	}

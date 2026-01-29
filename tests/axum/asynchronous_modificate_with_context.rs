@@ -66,21 +66,21 @@ pub struct RoleDTO {
 	pub alt_permissions: Vec<u32>,
 }
 
-fn modificate_tag(tag: &mut String, _field_name: &str) -> Result<(), ValidationError> {
+fn modificate_tag(tag: &mut String, _field: &str) -> Result<(), ValidationError> {
 	*tag = (tag.to_string() + "_modified").to_string();
 	Ok(())
 }
 
 async fn validate_unique_email(
 	email: &str,
-	field_name: &str,
+	field: &str,
 	service: &Arc<dyn MockedService>,
 ) -> Result<(), ValidationError> {
 	let result = service.email_exists(email).await;
 
 	if result {
 		Err(ValidationError::builder()
-			.with_field(field_name.to_string())
+			.with_field(field.to_string())
 			.as_simple("unique")
 			.with_message("e-mail must be unique")
 			.build()

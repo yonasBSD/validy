@@ -9,19 +9,19 @@ use validy::assert_errors;
 #[derive(Debug, Default, Deserialize, Validate, PartialEq)]
 #[validate(context = bool)]
 struct Test {
-	#[validate(custom_with_context(custom_fn, []))]
-	#[validate(custom_with_context(custom_params_fn, [&self.b]))]
+	#[validate(custom_with_context(validate, []))]
+	#[validate(custom_with_context(custom_params, [&self.b]))]
 	pub a: bool,
-	#[validate(custom_with_context(custom_fn, []))]
-	#[validate(custom_with_context(custom_params_two_fn, [&self.a]))]
+	#[validate(custom_with_context(validate, []))]
+	#[validate(custom_with_context(custom_params_two, [&self.a]))]
 	pub b: Option<bool>,
 }
 
-pub fn custom_fn(_value: &bool, field: &str, _context: &bool) -> Result<(), ValidationError> {
+pub fn validate(_value: &bool, field: &str, _context: &bool) -> Result<(), ValidationError> {
 	Err(validation_error!(field.to_string(), "custom_code", "custom message"))
 }
 
-pub fn custom_params_fn(
+pub fn custom_params(
 	_value: &bool,
 	field: &str,
 	_context: &bool,
@@ -34,7 +34,7 @@ pub fn custom_params_fn(
 	))
 }
 
-pub fn custom_params_two_fn(
+pub fn custom_params_two(
 	_value: &bool,
 	field: &str,
 	_context: &bool,
