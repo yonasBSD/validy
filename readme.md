@@ -42,8 +42,8 @@ A powerful and flexible Rust library based on procedural macros for `validation`
   - [For `test` assertions](#for-test-assertions)
 - [💝 Complete Example](#-complete-example)
 - [📁 More Examples](#-more-examples)
-<!--- [🎯 Work In Progress](#-work-in-progress)-->
 - [🎁 For Developers](#-for-developers)
+<!--- [🎯 Work In Progress](#-work-in-progress)-->
 
 ## 📝 Installation
 
