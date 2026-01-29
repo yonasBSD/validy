@@ -870,7 +870,7 @@ pub trait UserService: Send + Sync + Debug {
 
 ## 📁 More Examples
 
-If the examples aren't enough, I've included a more complete and documented example [here](/docs/complete_example.md). You also can use the [tests](/tests) as a reference.
+If the examples aren't enough, you can use the [tests](/tests) as a reference.
 
 ## 🎁 For Developers
 
