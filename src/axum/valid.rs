@@ -1,3 +1,5 @@
-pub struct Valid<T>(pub T);
+use crate::core::SpecificAsyncValidateAndParseWithContext;
+
+pub struct Valid<T: SpecificAsyncValidateAndParseWithContext>(pub T);
 #[cfg(feature = "axum_multipart")]
-pub struct ValidMultipart<T>(pub T);
+pub struct ValidMultipart<T: SpecificAsyncValidateAndParseWithContext>(pub T);

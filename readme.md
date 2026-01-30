@@ -2,7 +2,7 @@
 
 *More than just validation.*
 
-[![Crates.io](https://img.shields.io/crates/v/validy.svg?v=1)](https://crates.io/crates/validy?v=1)
+[![Crates.io](https://img.shields.io/crates/v/validy.svg)](https://crates.io/crates/validy)
 [![Status](https://github.com/L-Marcel/validy/actions/workflows/ci.yml/badge.svg)](https://github.com/L-Marcel/validy/actions/workflows/ci.yml)
 
 A powerful and flexible Rust library based on procedural macros for `validation`, `modification`, and DTO (Data Transfer Object) handling. Designed to integrate seamlessly with `Axum`. Inspired by `Validator`, `Validify`, and `Garde`.
@@ -589,7 +589,8 @@ The crate's behavior can be adjusted in your `Cargo.toml`.
 | `ip` | Enables ip rules. | |
 | `time` | Enables time rules. | `dep:chrono` |
 | `axum` | Enables Axum integration. | `dep:axum`, `derive` |
-| `axum_multipart` | Enables multipart support. | `axum_typed_multipart`, `axum` |
+| `axum_generic_extractor` | Enables `Valid<T>` and `ValidMultipart<T>` (if `axum_multipart` feature is enabled) support. | `axum` |
+| `axum_multipart` | Enables multipart support. | `axum` |
 | `axum_multipart_field_data` | Enables multipart field data rules. | `axum_multipart`, `pattern` |
 | `macro_rules` | Enables macros for validation errors. | |
 | `macro_rules_assertions` | Enables macros for assertions (tests). | `dep:pretty_assertions` |
